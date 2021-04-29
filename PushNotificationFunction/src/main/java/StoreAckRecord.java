@@ -4,11 +4,9 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import object.AckRecordDBTable;
-import object.InboxRecordTable;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
-import service.PushNotificationService;
 
 import java.util.HashMap;
 import java.util.Map;
