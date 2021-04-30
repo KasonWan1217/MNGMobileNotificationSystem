@@ -117,7 +117,7 @@ public class PushMessage {
         private String body;
         private String sound;
         private int badge;
-        private String picture_url;
+        private String picUrl;
 
         public PushDetails(InboxRecordTable data) {
             this.type = data.getActionCategory();
@@ -125,7 +125,7 @@ public class PushMessage {
             this.body = data.getMessage().getBody();
             this.sound = data.getSound();
             this.badge = data.getBadge();
-            this.picture_url = data.getPicture_url();
+            this.picUrl = data.getPicUrl();
         }
 
         public String getType() {
@@ -168,12 +168,12 @@ public class PushMessage {
             this.badge = badge;
         }
 
-        public String getPicture_url() {
-            return picture_url;
+        public String getPicUrl() {
+            return picUrl;
         }
 
-        public void setPicture_url(String picture_url) {
-            this.picture_url = picture_url;
+        public void setPicUrl(String picUrl) {
+            this.picUrl = picUrl;
         }
     }
 }

@@ -48,6 +48,7 @@ Resources:
             Effect: Allow
             Action:
               - dynamodb:DescribeTable
+              - dynamodb:CreateTable
               - dynamodb:PutItem
               - dynamodb:GetItem
               - dynamodb:UpdateItem
@@ -57,7 +58,17 @@ Resources:
               - dynamodb:BatchGetItem
               - dynamodb:BatchWriteItem
               - dynamodb:ConditionCheckItem
-            Resource: !GetAtt InboxRecordDBTable.Arn
+            Resource:
+                - !GetAtt InboxRecordDBTable.Arn
+                - !GetAtt AckRecordDBTable.Arn
+                - Fn::Join:
+                    - "/"
+                    - - { "Fn::GetAtt": [ "InboxRecordDBTable", "Arn" ] }
+                      - "index/*"
+                - Fn::Join:
+                    - "/"
+                    - - { "Fn::GetAtt": [ "AckRecordDBTable", "Arn" ] }
+                      - "index/*"
           - Sid: SNSPulishPolicy
             Effect: Allow
             Action:
@@ -86,7 +97,7 @@ Resources:
         SendNotificationAPI:
           Type: Api
           Properties:
-            Path: /SendNotification
+            Path: /sendNotification
             Method: POST
 
   StoreAckRecordFunction:
@@ -97,10 +108,27 @@ Resources:
       MemorySize: 512
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
-        SendNotificationAPI:
+        StoreAckRecordFunctionAPI:
           Type: Api
           Properties:
-            Path: /StoreAckRecord
+            Path: /storeAckRecord
+            Method: POST
+
+  RetrieveInboxRecordFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: PushNotificationFunction/
+      Handler: RetrieveInboxRecord::handleRequest
+      MemorySize: 512
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          SNS_ARN_PREFIX: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:"
+      Events:
+        RetrieveInboxRecordFunctionAPI:
+          Type: Api
+          Properties:
+            Path: /retrieveInboxRecord
             Method: POST
 
   InboxRecordDBTable:
@@ -111,14 +139,17 @@ Resources:
           AttributeName: "message_id"
           AttributeType: "S"
         -
-          AttributeName: "timestamp"
+          AttributeName: "push_timestamp"
+          AttributeType: "S"
+        -
+          AttributeName: "targetArn"
           AttributeType: "S"
       KeySchema:
         -
           AttributeName: "message_id"
           KeyType: "HASH"
         -
-          AttributeName: "timestamp"
+          AttributeName: "push_timestamp"
           KeyType: "RANGE"
       TableName: "InboxRecordDBTable"
       LocalSecondaryIndexes:
@@ -129,7 +160,18 @@ Resources:
               AttributeName: "message_id"
               KeyType: "HASH"
             -
-              AttributeName: "timestamp"
+              AttributeName: "push_timestamp"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
+      GlobalSecondaryIndexes:
+        - IndexName: "TargetArnIndex"
+          KeySchema:
+            -
+              AttributeName: "targetArn"
+              KeyType: "HASH"
+            -
+              AttributeName: "push_timestamp"
               KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL"
@@ -175,26 +217,31 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  LambdaExecutionRole:
-    Description: "Implicit IAM Role created for All function"
-    Value: !GetAtt LambdaExecutionRole.Arn
+
   SendNotificationAPI:
     Description: "API Gateway endpoint URL for Prod stage for Send Notification Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/SendNotification/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/sendNotification/"
   SendNotificationFunction:
     Description: "Send Notification Lambda Function ARN"
     Value: !GetAtt SendNotificationFunction.Arn
-  InboxRecordDBTable:
-    Description: "InboxRecordDBTable's ARN"
-    Value: !GetAtt InboxRecordDBTable.Arn
 
   StoreAckRecordAPI:
     Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/StoreAckRecord/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/storeAckRecord/"
   StoreAckRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt StoreAckRecordFunction.Arn
 
-    AckRecordDBTable:
-      Description: "AckRecordDBTable's ARN"
-      Value: !GetAtt AckRecordDBTable.Arn
+  RetrieveInboxRecordAPI:
+    Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/retrieveInboxRecord/"
+  RetrieveInboxRecordFunction:
+    Description: "Store Ack Record Lambda Function ARN"
+    Value: !GetAtt RetrieveInboxRecordFunction.Arn
+
+  InboxRecordDBTable:
+    Description: "InboxRecordDBTable's ARN"
+    Value: !GetAtt InboxRecordDBTable.Arn
+  AckRecordDBTable:
+    Description: "AckRecordDBTable's ARN"
+    Value: !GetAtt AckRecordDBTable.Arn

@@ -7,15 +7,15 @@ import com.google.gson.Gson;
 @DynamoDBTable(tableName = "InboxRecordDBTable")
 public class InboxRecordTable {
     private String message_id;
-    private String timestamp;
+    private String push_timestamp;
     private String targetArn;
     private String targetArnType;
     private Message message;
     private String actionCategory;
     private int badge;
     private String sound;
-    private String picture_url;
-    private boolean directMsg;
+    private String picUrl;
+    private int directMsg;
 
     public InboxRecordTable(String json) {
         InboxRecordTable request = new Gson().fromJson(json, InboxRecordTable.class);
@@ -25,9 +25,9 @@ public class InboxRecordTable {
         this.actionCategory = request.getActionCategory();
         this.badge = request.getBadge();
         this.sound = request.getSound();
-        this.timestamp = request.getTimestamp();
-        this.picture_url = request.getPicture_url();
-        this.directMsg = request.isDirectMsg();
+        this.push_timestamp = request.getPush_timestamp();
+        this.picUrl = request.getPicUrl();
+        this.directMsg = request.getDirectMsg();
     }
 
 //@DynamoDBIgnore
@@ -42,12 +42,13 @@ public class InboxRecordTable {
     }
 
     @DynamoDBRangeKey
-    @DynamoDBAttribute(attributeName="timestamp")
-    public String getTimestamp() {
-        return timestamp;
+    @DynamoDBAttribute(attributeName="push_timestamp")
+    public String getPush_timestamp() {
+        return push_timestamp;
     }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+
+    public void setPush_timestamp(String push_timestamp) {
+        this.push_timestamp = push_timestamp;
     }
 
     @DynamoDBAttribute(attributeName="targetArn")
@@ -100,20 +101,21 @@ public class InboxRecordTable {
         this.sound = sound;
     }
 
-    @DynamoDBAttribute(attributeName="picture_url")
-    public String getPicture_url() {
-        return picture_url;
+    @DynamoDBAttribute(attributeName="picUrl")
+    public String getPicUrl() {
+        return picUrl;
     }
-    public void setPicture_url(String picture_url) {
-        this.picture_url = picture_url;
+    public void setPicUrl(String picUrl) {
+        this.picUrl = picUrl;
     }
 
     @DynamoDBAttribute(attributeName="directMsg")
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public boolean isDirectMsg() {
+    public int getDirectMsg() {
         return directMsg;
     }
-    public void setDirectMsg(boolean directMsg) {
+
+    public void setDirectMsg(int directMsg) {
         this.directMsg = directMsg;
     }
 
@@ -145,6 +147,10 @@ public class InboxRecordTable {
 
         public void setBody(String body) {
             this.body = body;
+        }
+
+        public String convertToJsonString() {
+            return new Gson().toJson(this);
         }
     }
 

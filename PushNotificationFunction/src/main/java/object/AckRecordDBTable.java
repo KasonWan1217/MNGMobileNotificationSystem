@@ -10,7 +10,7 @@ import java.util.Date;
 public class AckRecordDBTable {
     private String targetArn;
     private String message_id;
-    private String timestamp;
+    private String read_timestamp;
 
 
     public AckRecordDBTable(String json) {
@@ -19,7 +19,7 @@ public class AckRecordDBTable {
         this.message_id = ackRecordDBTable.getMessage_id();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmm");
         Date date = new Date();
-        this.timestamp = formatter.format(date);
+        this.read_timestamp = formatter.format(date);
     }
 
 //@DynamoDBIgnore
@@ -42,12 +42,13 @@ public class AckRecordDBTable {
         this.message_id = message_id;
     }
 
-    @DynamoDBAttribute(attributeName="timestamp")
-    public String getTimestamp() {
-        return timestamp;
+    @DynamoDBAttribute(attributeName="read_timestamp")
+    public String getRead_timestamp() {
+        return read_timestamp;
     }
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+
+    public void setRead_timestamp(String read_timestamp) {
+        this.read_timestamp = read_timestamp;
     }
 
     public String convertToJsonString() {

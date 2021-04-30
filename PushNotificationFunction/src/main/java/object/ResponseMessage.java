@@ -1,6 +1,7 @@
 package object;
 
 import com.google.gson.Gson;
+import object.InboxMessageRecord;
 
 public class ResponseMessage {
 
@@ -24,6 +25,7 @@ public class ResponseMessage {
         private String message_id;
         private String message_qty;
         private String errorMsg;
+        private InboxMessageRecord[] inbox_Msg;
 
         public String getMessage_id() {
             return message_id;
@@ -59,6 +61,13 @@ public class ResponseMessage {
 
         private String errorMsg_Detail;
 
+        public InboxMessageRecord[] getInbox_Msg() {
+            return inbox_Msg;
+        }
+
+        public void setInbox_Msg(InboxMessageRecord[] inbox_Msg) {
+            this.inbox_Msg = inbox_Msg;
+        }
 
         public Message(String message_id, int message_qty) {
             this.message_id = message_id;
@@ -70,9 +79,13 @@ public class ResponseMessage {
             this.errorMsg_Detail = errorMsg_Detail;
         }
 
+        public Message(InboxMessageRecord[] inbox_Msg) {
+            this.inbox_Msg = inbox_Msg;
+        }
     }
 
     public String convertToJsonString() {
         return new Gson().toJson(this);
     }
+
 }
