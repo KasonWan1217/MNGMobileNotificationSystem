@@ -3,7 +3,7 @@ package service;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import object.InboxRecordTable;
+import object.db.InboxRecordTable;
 import object.PushMessage;
 import object.ResponseMessage;
 

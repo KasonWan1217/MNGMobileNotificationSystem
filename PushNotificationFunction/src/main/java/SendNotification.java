@@ -9,7 +9,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 
 import service.DynamoDBService;
 import service.PushNotificationService;
-import object.InboxRecordTable;
+import object.db.InboxRecordTable;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
 
@@ -35,6 +35,7 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
                 logger.log("Send Notification Fail - Message: " + output.getMessage().getErrorMsg());
             } else {
                 recordTable.setMessage_id(output.getMessage().getMessage_id());
+                recordTable.setMessage_qty(output.getMessage().getMessage_qty());
                 if(recordTable.getDirectMsg() != 0) {
                     ResponseMessage db_response = DynamoDBService.insertData(recordTable);
                     if (!db_response.getCode().equals(200))

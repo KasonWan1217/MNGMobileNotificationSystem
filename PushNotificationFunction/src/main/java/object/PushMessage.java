@@ -3,6 +3,7 @@ package object;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
+import object.db.InboxRecordTable;
 
 public class PushMessage {
     @SerializedName("default")

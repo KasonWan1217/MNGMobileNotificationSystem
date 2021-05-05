@@ -3,7 +3,6 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import object.AckRecordDBTable;
 import object.ResponseMessage;
 import object.RetrieveInboxRecordRequest;
 import org.apache.log4j.BasicConfigurator;

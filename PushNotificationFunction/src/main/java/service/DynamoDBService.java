@@ -15,10 +15,8 @@ import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
-import object.InboxRecordTable;
+import object.db.InboxRecordTable;
 import object.InboxMessageRecord;
 import object.ResponseMessage;
 import object.RetrieveInboxRecordRequest;

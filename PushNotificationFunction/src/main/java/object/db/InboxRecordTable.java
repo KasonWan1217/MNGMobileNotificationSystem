@@ -1,4 +1,4 @@
-package object;
+package object.db;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -16,6 +16,7 @@ public class InboxRecordTable {
     private String sound;
     private String picUrl;
     private int directMsg;
+    private String message_qty;
 
     public InboxRecordTable(String json) {
         InboxRecordTable request = new Gson().fromJson(json, InboxRecordTable.class);
@@ -117,6 +118,15 @@ public class InboxRecordTable {
 
     public void setDirectMsg(int directMsg) {
         this.directMsg = directMsg;
+    }
+
+    @DynamoDBAttribute(attributeName="message_qty")
+    public String getMessage_qty() {
+        return message_qty;
+    }
+
+    public void setMessage_qty(String message_qty) {
+        this.message_qty = message_qty;
     }
 
     @DynamoDBDocument

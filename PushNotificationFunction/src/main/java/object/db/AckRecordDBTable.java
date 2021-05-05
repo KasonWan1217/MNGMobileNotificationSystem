@@ -1,4 +1,4 @@
-package object;
+package object.db;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.google.gson.Gson;
@@ -11,6 +11,7 @@ public class AckRecordDBTable {
     private String targetArn;
     private String message_id;
     private String read_timestamp;
+    private String remark;
 
 
     public AckRecordDBTable(String json) {
@@ -20,6 +21,7 @@ public class AckRecordDBTable {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmm");
         Date date = new Date();
         this.read_timestamp = formatter.format(date);
+        this.remark = ackRecordDBTable.getRemark();
     }
 
 //@DynamoDBIgnore
@@ -49,6 +51,15 @@ public class AckRecordDBTable {
 
     public void setRead_timestamp(String read_timestamp) {
         this.read_timestamp = read_timestamp;
+    }
+
+    @DynamoDBAttribute(attributeName="remark")
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
     }
 
     public String convertToJsonString() {
