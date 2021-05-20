@@ -8,10 +8,11 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 
 import service.DynamoDBService;
-import service.PushNotificationService;
-import object.db.InboxRecordTable;
+import service.SNSNotificationService;
+import object.db.InboxRecord;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
+import util.CommonUtil;
 
 /**
  * Handler for requests to Lambda function.
@@ -19,6 +20,7 @@ import org.apache.log4j.BasicConfigurator;
 public class SendNotification implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     public APIGatewayProxyResponseEvent handleRequest(final APIGatewayProxyRequestEvent input, final Context context) {
+        String request_time = CommonUtil.getCurrentTime();
         BasicConfigurator.configure();
         final LambdaLogger logger = context.getLogger();
         Map<String, String> headers = new HashMap<>();
@@ -28,18 +30,19 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
         ResponseMessage output = null;
         if (input != null) {
 //          String dynamoDBName = System.getenv("DynamoDBName");
-            InboxRecordTable recordTable = new InboxRecordTable(input.getBody());
-            output = new PushNotificationService().publishNotification(recordTable);
+            InboxRecord recordTable = new InboxRecord(input.getBody());
+            recordTable.setCreate_datetime(request_time);
+            output = new SNSNotificationService().publishNotification(recordTable);
 
             if (output.getCode() == null || !output.getCode().equals(200)) {
-                logger.log("Send Notification Fail - Message: " + output.getMessage().getErrorMsg());
+                logger.log("Send Notification Fail - Message: " + output.getMessage().getError_msg());
             } else {
-                recordTable.setMessage_id(output.getMessage().getMessage_id());
+                recordTable.setSns_msg_id(output.getMessage().getMsg_id());
                 recordTable.setMessage_qty(output.getMessage().getMessage_qty());
-                if(recordTable.getDirectMsg() != 0) {
-                    ResponseMessage db_response = DynamoDBService.insertData(recordTable);
-                    if (!db_response.getCode().equals(200))
-                        output = db_response;
+                if(recordTable.getDirect_msg() != 0) {
+                    output.combine(DynamoDBService.insertData(recordTable));
+                    if (!output.getCode().equals(200))
+                        return response.withStatusCode(200).withBody(output.convertToJsonString());
                 }
                 logger.log("Send Notification Success - Code: " + output.getCode());
             }

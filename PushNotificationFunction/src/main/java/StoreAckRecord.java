@@ -3,7 +3,8 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
-import object.db.AckRecordDBTable;
+import com.google.gson.Gson;
+import object.db.AckRecord;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
@@ -22,7 +23,7 @@ public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEven
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent().withHeaders(headers);
         ResponseMessage output = null;
         if (input != null) {
-            AckRecordDBTable recordTable = new AckRecordDBTable(input.getBody());
+            AckRecord recordTable = new Gson().fromJson(input.getBody(), AckRecord.class);
             output = new DynamoDBService().insertData(recordTable);
             return response.withStatusCode(200).withBody(output.convertToJsonString());
         } else {

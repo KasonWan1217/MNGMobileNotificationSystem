@@ -3,11 +3,11 @@ package object;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-import object.db.InboxRecordTable;
+import object.db.InboxRecord;
 
 public class PushMessage {
     @SerializedName("default")
-    private String defaultValue;
+    private String default_value;
 
     @SerializedName("APNS")
     private String apns;
@@ -18,8 +18,12 @@ public class PushMessage {
     @SerializedName("GCM")
     private String gcm;
 
-    public String getDefaultValue() {
-        return defaultValue;
+    public String getDefault_value() {
+        return default_value;
+    }
+
+    public void setDefault_value(String default_value) {
+        this.default_value = default_value;
     }
 
     public String getApns() {
@@ -32,10 +36,6 @@ public class PushMessage {
 
     public String getGcm() {
         return gcm;
-    }
-
-    public void setDefaultValue(String defaultValue) {
-        this.defaultValue = defaultValue;
     }
 
     public void setApns(String apns) {
@@ -98,35 +98,45 @@ public class PushMessage {
         }
     }
 
-    public PushMessage(InboxRecordTable obj){
+    public PushMessage(InboxRecord obj){
         PushDetails details = new PushDetails(obj);
         Gson gson = new GsonBuilder().serializeNulls().create();
         String txt_APNS = gson.toJson(new APNS(new Alert(details)));
         String txt_GCM = gson.toJson(new GCM(details));
-        System.out.println("txt_APNS: " + txt_APNS);
-        System.out.println("txt_GCM: " + txt_GCM);
 
-        this.defaultValue = "BEA Notification Message";
+        this.default_value = "BEA Notification Message";
         this.apns = txt_APNS;
         this.apns_sandbox = txt_APNS;
         this.gcm = txt_GCM;
     }
 
     public class PushDetails {
+        private String msg_id;
         private String type;
         private String title;
+        private String sub_title;
         private String body;
         private String sound;
         private int badge;
         private String picUrl;
 
-        public PushDetails(InboxRecordTable data) {
-            this.type = data.getActionCategory();
-            this.title = data.getMessage().getTitle();
-            this.body = data.getMessage().getBody();
-            this.sound = data.getSound();
-            this.badge = data.getBadge();
-            this.picUrl = data.getPicUrl();
+        public PushDetails(InboxRecord obj) {
+            this.msg_id = obj.getMsg_id();
+            this.type = obj.getAction_category();
+            this.title = obj.getMessage().getTitle();
+            this.sub_title = obj.getMessage().getSub_title();
+            this.body = obj.getMessage().getBody();
+            this.sound = obj.getSound();
+            this.badge = obj.getBadge();
+            this.picUrl = obj.getPic_url();
+        }
+
+        public String getMsg_id() {
+            return msg_id;
+        }
+
+        public void setMsg_id(String msg_id) {
+            this.msg_id = msg_id;
         }
 
         public String getType() {
@@ -143,6 +153,14 @@ public class PushMessage {
 
         public void setTitle(String title) {
             this.title = title;
+        }
+
+        public String getSub_title() {
+            return sub_title;
+        }
+
+        public void setSub_title(String sub_title) {
+            this.sub_title = sub_title;
         }
 
         public String getBody() {

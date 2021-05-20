@@ -2,6 +2,7 @@ package object;
 
 import com.google.gson.Gson;
 import object.InboxMessageRecord;
+import object.db.SNSAccount;
 
 public class ResponseMessage {
 
@@ -16,23 +17,80 @@ public class ResponseMessage {
         return code;
     }
 
+    public void setCode(Integer code) {
+        this.code = code;
+    }
+
+    public void setMessage(Message message) {
+        this.message = message;
+    }
+
     public ResponseMessage(int code, Message message) {
         this.code = code;
         this.message = message;
     }
 
-    public static class Message {
-        private String message_id;
-        private String message_qty;
-        private String errorMsg;
-        private InboxMessageRecord[] inbox_Msg;
+    public ResponseMessage(FunctionStatus obj) {
+        if(obj.isStatus()) {
+            this.code = 200;
+            Gson gson = new Gson();
+            String jsonString = gson.toJson(obj.getResponse());
+            Message message = gson.fromJson(jsonString, Message.class);
+            this.message = message;
+        } else {
+            this.code = obj.getCode();
+            Message message = new Message(obj.getError_msg(), obj.getError_msg_detail());
+            this.message = message;
+        }
+    }
 
-        public String getMessage_id() {
-            return message_id;
+    public static class Message {
+        private String msg_id;
+        private String app_reg_id;
+        private String message_qty;
+        private String error_msg;
+        private String error_msg_detail;
+        private InboxMessageRecord[] inbox_msg;
+
+        public Message() {}
+
+        public Message combine(Message obj) {
+            this.msg_id = obj.getMsg_id() == null   ? this.msg_id : obj.getMsg_id();
+            this.message_qty = obj.getMessage_qty() == null ? this.message_qty : obj.getMessage_qty();
+            this.error_msg = obj.getError_msg() == null       ? this.error_msg : obj.getError_msg();
+            this.error_msg_detail = obj.getError_msg_detail() == null       ? this.error_msg_detail : obj.getError_msg_detail();
+            this.inbox_msg = obj.getInbox_msg() == null     ? this.inbox_msg : obj.getInbox_msg();
+            return this;
         }
 
-        public void setMessage_id(String message_id) {
-            this.message_id = message_id;
+        public Message(String msg_id, int message_qty) {
+            this.msg_id = msg_id;
+            this.message_qty = String.valueOf(message_qty);
+        }
+
+        public Message(String error_msg, String error_msg_detail) {
+            this.error_msg = error_msg;
+            this.error_msg_detail = error_msg_detail;
+        }
+
+        public Message(InboxMessageRecord[] inbox_msg) {
+            this.inbox_msg = inbox_msg;
+        }
+
+        public String getMsg_id() {
+            return msg_id;
+        }
+
+        public void setMsg_id(String msg_id) {
+            this.msg_id = msg_id;
+        }
+
+        public String getApp_reg_id() {
+            return app_reg_id;
+        }
+
+        public void setApp_reg_id(String app_reg_id) {
+            this.app_reg_id = app_reg_id;
         }
 
         public String getMessage_qty() {
@@ -43,44 +101,28 @@ public class ResponseMessage {
             this.message_qty = message_qty;
         }
 
-        public String getErrorMsg() {
-            return errorMsg;
+        public String getError_msg() {
+            return error_msg;
         }
 
-        public void setErrorMsg(String errorMsg) {
-            this.errorMsg = errorMsg;
+        public void setError_msg(String error_msg) {
+            this.error_msg = error_msg;
         }
 
-        public String getErrorMsg_Detail() {
-            return errorMsg_Detail;
+        public String getError_msg_detail() {
+            return error_msg_detail;
         }
 
-        public void setErrorMsg_Detail(String errorMsg_Detail) {
-            this.errorMsg_Detail = errorMsg_Detail;
+        public void setError_msg_detail(String error_msg_detail) {
+            this.error_msg_detail = error_msg_detail;
         }
 
-        private String errorMsg_Detail;
-
-        public InboxMessageRecord[] getInbox_Msg() {
-            return inbox_Msg;
+        public InboxMessageRecord[] getInbox_msg() {
+            return inbox_msg;
         }
 
-        public void setInbox_Msg(InboxMessageRecord[] inbox_Msg) {
-            this.inbox_Msg = inbox_Msg;
-        }
-
-        public Message(String message_id, int message_qty) {
-            this.message_id = message_id;
-            this.message_qty = String.valueOf(message_qty);
-        }
-
-        public Message(String errorMsg, String errorMsg_Detail) {
-            this.errorMsg = errorMsg;
-            this.errorMsg_Detail = errorMsg_Detail;
-        }
-
-        public Message(InboxMessageRecord[] inbox_Msg) {
-            this.inbox_Msg = inbox_Msg;
+        public void setInbox_msg(InboxMessageRecord[] inbox_msg) {
+            this.inbox_msg = inbox_msg;
         }
     }
 

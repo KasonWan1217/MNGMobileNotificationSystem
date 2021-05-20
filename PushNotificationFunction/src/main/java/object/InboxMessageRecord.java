@@ -3,23 +3,23 @@ package object;
 import com.google.gson.Gson;
 
 public class InboxMessageRecord {
+    private String msg_id;
     private String title;
-    private String subtitle;
+    private String sub_title;
     private String body;
-    private String message_id;
-    private String push_timestamp;
+    private String msg_timestamp;
 
-    public InboxMessageRecord(String title, String subtitle, String body, String message_id, String push_timestamp) {
+    public InboxMessageRecord(String title, String sub_title, String body, String msg_id, String msg_timestamp) {
+        this.msg_id = msg_id;
         this.title = title;
-        this.subtitle = subtitle;
+        this.sub_title = sub_title;
         this.body = body;
-        this.message_id = message_id;
-        this.push_timestamp = push_timestamp;
+        this.msg_timestamp = msg_timestamp;
     }
 
     public void setMessage(InboxMessageRecord inboxMessageRecord) {
         this.title = inboxMessageRecord.getTitle();
-        this.subtitle = inboxMessageRecord.getSubtitle();
+        this.sub_title = inboxMessageRecord.getSub_title();
         this.body = inboxMessageRecord.getBody();
     }
 
@@ -31,12 +31,12 @@ public class InboxMessageRecord {
         this.title = title;
     }
 
-    public String getSubtitle() {
-        return subtitle;
+    public String getSub_title() {
+        return sub_title;
     }
 
-    public void setSubtitle(String subtitle) {
-        this.subtitle = subtitle;
+    public void setSub_title(String sub_title) {
+        this.sub_title = sub_title;
     }
 
     public String getBody() {
@@ -47,20 +47,20 @@ public class InboxMessageRecord {
         this.body = body;
     }
 
-    public String getMessage_id() {
-        return message_id;
+    public String getMsg_id() {
+        return msg_id;
     }
 
-    public void setMessage_id(String message_id) {
-        this.message_id = message_id;
+    public void setMsg_id(String msg_id) {
+        this.msg_id = msg_id;
     }
 
-    public String getPush_timestamp() {
-        return push_timestamp;
+    public String getMsg_timestamp() {
+        return msg_timestamp;
     }
 
-    public void setPush_timestamp(String push_timestamp) {
-        this.push_timestamp = push_timestamp;
+    public void setMsg_timestamp(String msg_timestamp) {
+        this.msg_timestamp = msg_timestamp;
     }
 
     public String convertToJsonString() {

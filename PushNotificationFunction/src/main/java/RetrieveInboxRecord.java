@@ -3,8 +3,9 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.google.gson.Gson;
 import object.ResponseMessage;
-import object.RetrieveInboxRecordRequest;
+import object.request.RetrieveInboxRecordRequest;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
 
@@ -22,7 +23,7 @@ public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyReques
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent().withHeaders(headers);
         ResponseMessage output = null;
         if (input != null) {
-            RetrieveInboxRecordRequest request = new RetrieveInboxRecordRequest(input.getBody());
+            RetrieveInboxRecordRequest request = new Gson().fromJson(input.getBody(), RetrieveInboxRecordRequest.class);
             output = new DynamoDBService().getInboxMessageRecord(request);
             return response.withStatusCode(200).withBody(output.convertToJsonString());
         } else {
