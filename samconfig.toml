@@ -1,10 +1,33 @@
 version = 0.1
-[default]
-[default.deploy]
-[default.deploy.parameters]
-stack_name = "push-sample-01"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-iudvkytjtstr"
-s3_prefix = "push-sample-01"
+[Dev]
+[Dev.deploy]
+[Dev.deploy.parameters]
+stack_name = "sns-notification"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17s78z3w4zx5k"
+s3_prefix = "sns-notification"
 region = "ap-northeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Stage=\"Dev\""
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sns-notification"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17s78z3w4zx5k"
+s3_prefix = "sns-notification"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Stage=\"Dev\""
+
+[DEV]
+[DEV.deploy]
+[DEV.deploy.parameters]
+stack_name = "sns-notification"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-17s78z3w4zx5k"
+s3_prefix = "sns-notification"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Stage=\"Dev\""

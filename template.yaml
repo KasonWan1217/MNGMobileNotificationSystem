@@ -10,19 +10,28 @@ Globals:
   Function:
     Runtime: java11
     Timeout: 180
+    MemorySize: 512
+    Environment:
+      Variables:
+        SnsTopicDomain: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:"
+        SnsPlatformDomain: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:app/"
 
 Parameters:
-  SNS_Platform_Domain:
+  Stage:
     Type: String
-    Description: SNS_Platform_Domain
-    Default: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:app/"
+    Description: Development Stage
+    Default: Dev
 
-  SNS_Topic_Domain:
-    Type: String
-    Description: SNS_Topic_Domain
-    Default: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:"
 
 Resources:
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref "Stage"
+#  Api:
+#    Type: AWS::Serverless::Api
+#    Properties:
+#      StageName: !Ref "Stage"
   #  ApiKey:
   #    Type: "AWS::ApiGateway::ApiKey"
   #    #    DependsOn: [ApiUsagePlan]
@@ -105,7 +114,8 @@ Resources:
             Resource:
               - !GetAtt InboxRecord.Arn
               - !GetAtt AckRecord.Arn
-              - !GetAtt TopicSubscription.Arn
+              - !GetAtt SnsAccount.Arn
+              - !GetAtt ApplicationChannel.Arn
               - Fn::Join:
                   - "/"
                   - - { "Fn::GetAtt": [ "InboxRecord", "Arn" ] }
@@ -116,7 +126,11 @@ Resources:
                     - "index/*"
               - Fn::Join:
                   - "/"
-                  - - { "Fn::GetAtt": [ "TopicSubscription", "Arn" ] }
+                  - - { "Fn::GetAtt": [ "SnsAccount", "Arn" ] }
+                    - "index/*"
+              - Fn::Join:
+                  - "/"
+                  - - { "Fn::GetAtt": [ "ApplicationChannel", "Arn" ] }
                     - "index/*"
           - Sid: SNSPulishPolicy
             Effect: Allow
@@ -125,7 +139,9 @@ Resources:
               - sns:Publish
               - sns:ListSubscriptionsByTopic
               - sns:Subscribe
+              - sns:Unsubscribe
               - sns:CreatePlatformEndpoint
+              - sns:DeleteEndpoint
             Resource:
               Fn::Join:
                 - ""
@@ -141,8 +157,7 @@ Resources:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: PushNotificationFunction/
-      Handler: RegisterDeviceToken::handleRequest
-      MemorySize: 512
+      Handler: RegisterSnsService::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
         RegisterDeviceTokenAPI:
@@ -150,9 +165,8 @@ Resources:
           Properties:
             Path: /registerDeviceToken
             Method: POST
-            Environment:
-              Variables:
-                SNS_Platform_Domain: !Ref SNS_Platform_Domain
+            RestApiId:
+              Ref: ApiGatewayApi
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -161,15 +175,15 @@ Resources:
     Properties:
       CodeUri: PushNotificationFunction/
       Handler: SendNotification::handleRequest
-      MemorySize: 512
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
         SendNotificationAPI:
           Type: Api
           Properties:
-            #            RestApiId: !Ref AWSServerlessApi
             Path: /sendNotification
             Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -178,14 +192,15 @@ Resources:
     Properties:
       CodeUri: PushNotificationFunction/
       Handler: StoreAckRecord::handleRequest
-      MemorySize: 512
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
-        StoreAckRecordFunctionAPI:
+        StoreAckRecordAPI:
           Type: Api
           Properties:
             Path: /storeAckRecord
             Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -194,18 +209,15 @@ Resources:
     Properties:
       CodeUri: PushNotificationFunction/
       Handler: RetrieveInboxRecord::handleRequest
-      MemorySize: 512
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          SNS_Topic_Domain: !Ref SNS_Topic_Domain
-          SNS_ARN_PREFIX: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:"
       Events:
-        RetrieveInboxRecordFunctionAPI:
+        RetrieveInboxRecordAPI:
           Type: Api
           Properties:
             Path: /retrieveInboxRecord
             Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -217,16 +229,16 @@ Resources:
           AttributeType: "S"
         - AttributeName: "msg_timestamp"
           AttributeType: "S"
-        - AttributeName: "target_arn"
+        - AttributeName: "target"
           AttributeType: "S"
       KeySchema:
         - AttributeName: "msg_id"
           KeyType: "HASH"
       TableName: "InboxRecord"
       GlobalSecondaryIndexes:
-        - IndexName: "TargetArn-MsgTimestamp-GSI"
+        - IndexName: "Target-MsgTimestamp-GSI"
           KeySchema:
-            - AttributeName: "target_arn"
+            - AttributeName: "target"
               KeyType: "HASH"
             - AttributeName: "msg_timestamp"
               KeyType: "RANGE"
@@ -240,99 +252,69 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: "app_reg_id"
-          AttributeType: "S"
         - AttributeName: "msg_id"
+          AttributeType: "S"
+        - AttributeName: "app_reg_id"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "app_reg_id"
-          KeyType: "HASH"
         - AttributeName: "msg_id"
+          KeyType: "HASH"
+        - AttributeName: "app_reg_id"
           KeyType: "RANGE"
       TableName: "AckRecord"
-      LocalSecondaryIndexes:
-        - IndexName: "AppRegId-MsgId-LSI"
-          KeySchema:
-            - AttributeName: "app_reg_id"
-              KeyType: "HASH"
-            - AttributeName: "msg_id"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: "ALL"
+#      LocalSecondaryIndexes:
+#        - IndexName: "MsgId-AppRegId-LSI"
+#          KeySchema:
+#            - AttributeName: "msg_id"
+#              KeyType: "HASH"
+#            - AttributeName: "app_reg_id"
+#              KeyType: "RANGE"
+#          Projection:
+#            ProjectionType: "ALL"
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
       BillingMode: PAY_PER_REQUEST
 
-  TopicSubscription:
+  SnsAccount:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
         - AttributeName: "app_reg_id"
           AttributeType: "S"
-        - AttributeName: "topic_arn"
-          AttributeType: "S"
         - AttributeName: "app_name"
+          AttributeType: "S"
+        - AttributeName: "device_token"
+          AttributeType: "S"
+        - AttributeName: "active_status"
           AttributeType: "S"
       KeySchema:
         - AttributeName: "app_reg_id"
           KeyType: "HASH"
-        - AttributeName: "topic_arn"
-          KeyType: "RANGE"
-      TableName: "TopicSubscription"
-      LocalSecondaryIndexes:
-        - IndexName: "AppRegId-TopicArn-LSI"
-          KeySchema:
-            - AttributeName: "app_reg_id"
-              KeyType: "HASH"
-            - AttributeName: "topic_arn"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: "ALL"
+      TableName: "SnsAccount"
       GlobalSecondaryIndexes:
-        - IndexName: "AppRegId-AppName-GSI"
-          KeySchema:
-            - AttributeName: "app_reg_id"
-              KeyType: "HASH"
-            - AttributeName: "app_name"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: "ALL"
         - IndexName: "AppName-Sorting-GSI"
-            KeySchema:
-              - AttributeName: "app_name"
-                KeyType: "HASH"
-            Projection:
-              NonKeyAttributes:
-                - "create_datetime"
-                - "app_reg_id"
-              ProjectionType: "ALL"
-            ProvisionedThroughput:
-              ReadCapacityUnits: '1'
-              WriteCapacityUnits: '1'
-      StreamSpecification:
-        StreamViewType: NEW_AND_OLD_IMAGES
-      BillingMode: PAY_PER_REQUEST
-
-  ApplicationTopic:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      AttributeDefinitions:
-        - AttributeName: "app_name"
-          AttributeType: "S"
-        - AttributeName: "topic"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "app_name"
-          KeyType: "HASH"
-        - AttributeName: "topic"
-          KeyType: "RANGE"
-      TableName: "ApplicationTopic"
-      LocalSecondaryIndexes:
-        - IndexName: "AppName-Topic-LSI"
           KeySchema:
             - AttributeName: "app_name"
               KeyType: "HASH"
-            - AttributeName: "topic"
+          Projection:
+            NonKeyAttributes:
+              - "create_datetime"
+            ProjectionType: "INCLUDE"
+        - IndexName: "AppRegId-ActiveStatus-GSI"
+          KeySchema:
+            - AttributeName: "app_reg_id"
+              KeyType: "HASH"
+            - AttributeName: "active_status"
+              KeyType: "RANGE"
+          Projection:
+            NonKeyAttributes:
+              - "subscriptions"
+            ProjectionType: "INCLUDE"
+        - IndexName: "DeviceToken-ActiveStatus-GSI"
+          KeySchema:
+            - AttributeName: "device_token"
+              KeyType: "HASH"
+            - AttributeName: "active_status"
               KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL"
@@ -340,28 +322,37 @@ Resources:
         StreamViewType: NEW_AND_OLD_IMAGES
       BillingMode: PAY_PER_REQUEST
 
-  ApplicationPlatform:
+  ApplicationChannel:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-        - AttributeName: "platform_arn"
+        - AttributeName: "channel_name"
           AttributeType: "S"
         - AttributeName: "app_name"
           AttributeType: "S"
-        - AttributeName: "platform"
+        - AttributeName: "mobile_type"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "platform_arn"
+        - AttributeName: "channel_name"
           KeyType: "HASH"
         - AttributeName: "app_name"
           KeyType: "RANGE"
-      TableName: "ApplicationPlatform"
+      TableName: "ApplicationChannel"
+      LocalSecondaryIndexes:
+        - IndexName: "ChannelName-AppName-LSI"
+          KeySchema:
+            - AttributeName: "channel_name"
+              KeyType: "HASH"
+            - AttributeName: "app_name"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
       GlobalSecondaryIndexes:
-        - IndexName: "AppName-Platform-GSI"
+        - IndexName: "AppName-MobileType-GSI"
           KeySchema:
             - AttributeName: "app_name"
               KeyType: "HASH"
-            - AttributeName: "platform"
+            - AttributeName: "mobile_type"
               KeyType: "RANGE"
           Projection:
             ProjectionType: "ALL"
@@ -373,31 +364,30 @@ Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-
   RegisterDeviceTokenAPI:
     Description: "API Gateway endpoint URL for Prod stage for Send Notification Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/registerDeviceToken/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/registerDeviceToken/"
   RegisterDeviceTokenFunction:
     Description: "Register Device Token Lambda Function ARN"
     Value: !GetAtt RegisterDeviceTokenFunction.Arn
 
   SendNotificationAPI:
     Description: "API Gateway endpoint URL for Prod stage for Send Notification Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/sendNotification/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/sendNotification/"
   SendNotificationFunction:
     Description: "Send Notification Lambda Function ARN"
     Value: !GetAtt SendNotificationFunction.Arn
 
   StoreAckRecordAPI:
     Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/storeAckRecord/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/storeAckRecord/"
   StoreAckRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt StoreAckRecordFunction.Arn
 
   RetrieveInboxRecordAPI:
     Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/retrieveInboxRecord/"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/retrieveInboxRecord/"
   RetrieveInboxRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt RetrieveInboxRecordFunction.Arn
@@ -408,9 +398,9 @@ Outputs:
   AckRecord:
     Description: "AckRecord's ARN"
     Value: !GetAtt AckRecord.Arn
-  TopicSubscription:
-    Description: "TopicSubscription's ARN"
-    Value: !GetAtt TopicSubscription.Arn
-  ApplicationTopic:
-    Description: "ApplicationTopic's ARN"
-    Value: !GetAtt ApplicationTopic.Arn
+  SnsAccount:
+    Description: "SnsAccount's ARN"
+    Value: !GetAtt SnsAccount.Arn
+  ApplicationChannel:
+    Description: "ApplicationChannel's ARN"
+    Value: !GetAtt ApplicationChannel.Arn

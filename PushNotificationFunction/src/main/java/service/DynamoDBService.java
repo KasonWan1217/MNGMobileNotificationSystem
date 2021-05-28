@@ -18,20 +18,19 @@ import com.google.gson.Gson;
 
 import object.FailCaseLog;
 import object.FunctionStatus;
-import object.db.ApplicationPlatform;
+import object.db.ApplicationChannel;
 import object.db.InboxRecord;
 import object.InboxMessageRecord;
-import object.ResponseMessage;
-import object.db.SnsSubscriptions;
+import object.db.SnsAccount;
+import object.db.SnsAccount.Subscriptions;
 import object.request.RetrieveInboxRecordRequest;
 import util.CommonUtil;
+import util.DBEnumValue;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 import static com.amazonaws.services.lambda.runtime.LambdaRuntime.getLogger;
+import static util.CommonMessage.Fails_Message;
 
 public class DynamoDBService {
     private static AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
@@ -39,22 +38,22 @@ public class DynamoDBService {
     private static DynamoDBMapper mapper = null;
     private static LambdaLogger logger = getLogger();
 
-    public static FunctionStatus saveData(ArrayList<Object> tableObj_List) {
+//    public static FunctionStatus saveData(ArrayList<Object> tableObj_List) {
+//        try {
+//            mapper = new DynamoDBMapper(client);
+//            mapper.batchSave(tableObj_List);
+//            logger.log("Store DB Complete.");
+//            return new FunctionStatus(true, null);
+//        } catch (AmazonDynamoDBException e) {
+//            FailCaseLog failCaseLog = new FailCaseLog(e.getStatusCode(), e.getErrorMessage(), e.getMessage());
+//            logger.log("\nError running the saveData batch: " + failCaseLog.convertToJsonString() + "\n");
+//            return new FunctionStatus(false, e.getStatusCode(), e.getErrorMessage(), e.getMessage());
+//        }
+//    }
+    public static FunctionStatus saveData(Object obj) {
         try {
             mapper = new DynamoDBMapper(client);
-            mapper.batchSave(tableObj_List);
-            logger.log("Store DB Complete.");
-            return new FunctionStatus(true, null);
-        } catch (AmazonDynamoDBException e) {
-            FailCaseLog failCaseLog = new FailCaseLog(e.getStatusCode(), e.getErrorMessage(), e.getMessage());
-            logger.log("\nError running the saveData batch: " + failCaseLog.convertToJsonString() + "\n");
-            return new FunctionStatus(false, e.getStatusCode(), e.getErrorMessage(), e.getMessage());
-        }
-    }
-    public static FunctionStatus saveData(Object tableObj) {
-        try {
-            mapper = new DynamoDBMapper(client);
-            mapper.save(tableObj);
+            mapper.save(obj);
             logger.log("Store DB Complete.");
             return new FunctionStatus(true, null);
         } catch (AmazonDynamoDBException e) {
@@ -64,11 +63,86 @@ public class DynamoDBService {
         }
     }
 
+    public static FunctionStatus getSubscriptionsList(String app_reg_id) {
+        FunctionStatus functionStatus = getSnsAccount_Subscriptions(app_reg_id);
+        List<Subscriptions> arrayList_channelName = ((SnsAccount) functionStatus.getResponse().get("snsAccount")).getSubscriptions();
+        HashMap<String, Object> rs = new HashMap<String, Object>();
+        rs.put("arrayList_channelName", arrayList_channelName);
+        return new FunctionStatus(true, rs);
+    }
 
-    public static FunctionStatus getApplicationPlatform(String app_name, String mobile_type) {
-        ArrayList<String> arrayList_platformArn = new ArrayList<String>();
-        Table table = dynamoDB.getTable("ApplicationPlatform");
-        Index index = table.getIndex("AppName-MobilePlatform-GSI");
+    public static FunctionStatus getSnsAccount_checkStatus(String device_token, String active_status) {
+        Table table = dynamoDB.getTable("SnsAccount");
+        Index index = table.getIndex("DeviceToken-ActiveStatus-GSI");
+
+        ItemCollection<QueryOutcome> items = null;
+        QuerySpec querySpec = new QuerySpec();
+
+        if ("DeviceToken-ActiveStatus-GSI".equals(index.getIndexName())) {
+            querySpec.withKeyConditionExpression("device_token = :v1 AND active_status = :v2")
+                    .withValueMap(new ValueMap()
+                            .withString(":v1", device_token)
+                            .withString(":v2", active_status)
+                    );
+            items = index.query(querySpec);
+            if (items == null) {
+                logger.log("getSnsAccount_checkStatus : item is null");
+            } else {
+                logger.log("getSnsAccount_checkStatus : item is not null");
+            }
+        }
+
+        List<ApplicationChannel> list = new ArrayList<ApplicationChannel>();
+        Iterator<Item> iterator = items.iterator();
+        SnsAccount snsAccount = new SnsAccount();
+        while (iterator.hasNext()) {
+            Item item = iterator.next();
+            logger.log("getSnsAccount_checkStatus: " + item.toJSONPretty());
+            snsAccount = new Gson().fromJson(item.toJSON(), SnsAccount.class);
+        }
+        HashMap<String, Object> rs = new HashMap<String, Object>();
+        rs.put("snsAccount", snsAccount);
+        return new FunctionStatus(true, rs);
+    }
+
+    public static FunctionStatus getSnsAccount_Subscriptions(String app_reg_id) {
+        Table table = dynamoDB.getTable("SnsAccount");
+        Index index = table.getIndex("AppRegId-ActiveStatus-GSI");
+
+        ItemCollection<QueryOutcome> items = null;
+        QuerySpec querySpec = new QuerySpec();
+
+        if ("AppRegId-ActiveStatus-GSI".equals(index.getIndexName())) {
+            querySpec.withKeyConditionExpression("app_reg_id = :v1 AND active_status =:v2")
+                    .withValueMap(new ValueMap()
+                            .withString(":v1", app_reg_id)
+                            .withString(":v2", DBEnumValue.Status.Success.toString())
+                    );
+            items = index.query(querySpec);
+            if (items == null) {
+                logger.log("getSnsAccount_Subscriptions : item is null");
+            } else {
+                logger.log("getSnsAccount_Subscriptions : item is not null");
+            }
+        }
+
+        List<ApplicationChannel> list = new ArrayList<ApplicationChannel>();
+        Iterator<Item> iterator = items.iterator();
+        SnsAccount snsAccount = new SnsAccount();
+        while (iterator.hasNext()) {
+            Item item = iterator.next();
+            logger.log("Subscriptions List: " + item.toJSONPretty());
+            snsAccount = new Gson().fromJson(item.toJSON(), SnsAccount.class);
+        }
+        HashMap<String, Object> rs = new HashMap<String, Object>();
+        rs.put("snsAccount", snsAccount);
+        return new FunctionStatus(true, rs);
+    }
+
+
+    public static FunctionStatus getPlatformName(String app_name, String mobile_type) {
+        Table table = dynamoDB.getTable("ApplicationChannel");
+        Index index = table.getIndex("AppName-MobileType-GSI");
 
         ItemCollection<QueryOutcome> items = null;
         QuerySpec querySpec = new QuerySpec();
@@ -81,78 +155,94 @@ public class DynamoDBService {
                     );
             items = index.query(querySpec);
             if (items == null) {
-                logger.log("getApplicationPlatform : item is null");
+                logger.log("getPlatformName : item is null");
             } else {
-                logger.log("getApplicationPlatform : item is not null");
+                logger.log("getPlatformName : item is not null");
             }
         }
 
-        List<ApplicationPlatform> list = new ArrayList<ApplicationPlatform>();
+        List<ApplicationChannel> list = new ArrayList<ApplicationChannel>();
         Iterator<Item> iterator = items.iterator();
+
+        ArrayList<String> arrayList_platformName = new ArrayList<String>();
 
         while (iterator.hasNext()) {
             Item item = iterator.next();
-            logger.log("GsonA: " + item.toJSON());
-            ApplicationPlatform tempObj = new Gson().fromJson(item.toJSON().toString(), ApplicationPlatform.class);
-            arrayList_platformArn.add(tempObj.getPlatform());
+            logger.log("getPlatformName: " + item.toJSON());
+            ApplicationChannel tempObj = new Gson().fromJson(item.toJSON(), ApplicationChannel.class);
+            arrayList_platformName.add(tempObj.getChannel_name());
         }
         HashMap<String, Object> rs = new HashMap<String, Object>();
-        rs.put("platformName_arraylist", arrayList_platformArn);
-        return new FunctionStatus(true, rs);
+        if (arrayList_platformName.size() > 0) {
+            rs.put("arrayList_platformName", arrayList_platformName);
+            return new FunctionStatus(true, rs);
+        } else {
+            return new FunctionStatus(false, 500, Fails_Message.PlatformName_Null_Error.toString(), Fails_Message.PlatformName_Null_Error.toString());
+        }
+
     }
 
-    public static String getLatestAppRegID(String app_name) {
-        Table table = dynamoDB.getTable("SnsSubscriptions");
+    public static FunctionStatus getSnsAccount_LatestAppRegID(String app_name) {
+        Table table = dynamoDB.getTable("SnsAccount");
         Index index = table.getIndex("AppName-Sorting-GSI");
 
         ItemCollection<QueryOutcome> items = null;
         QuerySpec querySpec = new QuerySpec();
-
+        logger.log("app_naem: " +app_name);
         if ("AppName-Sorting-GSI".equals(index.getIndexName())) {
             querySpec.withKeyConditionExpression("app_name = :v1")
                     .withValueMap(new ValueMap()
                             .withString(":v1", app_name)
-                    );
-            querySpec.withScanIndexForward(true);
+                    ).withScanIndexForward(false).setMaxResultSize(1);
             items = index.query(querySpec);
             if (items == null) {
-                logger.log("getInboxMessageRecord : item is null");
+                logger.log("getSnsAccount_LatestAppRegID : item is null");
             } else {
-                logger.log("getInboxMessageRecord : item is not null");
+                logger.log("getSnsAccount_LatestAppRegID : item is not null");
             }
         }
 
-        SnsSubscriptions account = new Gson().fromJson(items.toString(), SnsSubscriptions.class);
-        logger.log("The Latest SnsSubscriptions : " + account.getApp_reg_id());
-
-        return account.getApp_reg_id();
-    }
-
-    public static ResponseMessage getInboxMessageRecord(RetrieveInboxRecordRequest request) {
-        ArrayList<InboxMessageRecord> inboxMessageRecordArray = new ArrayList<InboxMessageRecord>();
-
-        inboxMessageRecordArray = getInboxMessageRecord(inboxMessageRecordArray, request.getAccount_id(), request.getPush_timestamp());
-        for (String topic : request.getTopic_name()) {
-            String arn = new CommonUtil().getSnsTopicArn(topic);
-            inboxMessageRecordArray = getInboxMessageRecord(inboxMessageRecordArray, arn, request.getPush_timestamp());
-            logger.log("ArrayList: " + inboxMessageRecordArray.size());
+        Iterator<Item> iterator = items.iterator();
+        String app_reg_id = "";
+        while (iterator.hasNext()) {
+            app_reg_id = new Gson().fromJson(iterator.next().toJSONPretty(), SnsAccount.class).getApp_reg_id();
         }
 
-        return new ResponseMessage(200, new ResponseMessage.Message(inboxMessageRecordArray.toArray(new InboxMessageRecord[inboxMessageRecordArray.size()])));
+        HashMap<String, Object> rs = new HashMap<String, Object>();
+        rs.put("app_reg_id", app_reg_id);
+        return new FunctionStatus(true, rs);
     }
 
-    private static ArrayList<InboxMessageRecord> getInboxMessageRecord(ArrayList<InboxMessageRecord> inboxMessageRecordArray, String arn, String msg_timestamp) {
-        String tableIndexName = "TargetArn-MsgTimestamp-GSI ";
-        Table table = dynamoDB.getTable("InboxRecordDBTable");
-        Index index = table.getIndex(tableIndexName);
+    public static FunctionStatus getInboxMessageRecord(RetrieveInboxRecordRequest request, List<Subscriptions> arrayList_channelName) {
+        ArrayList<InboxMessageRecord> inbox_msg = new ArrayList<InboxMessageRecord>();
+        for (Subscriptions subscription : arrayList_channelName) {
+            if (DBEnumValue.ArnType.Platform.toString().equals(subscription.getArn()))
+                continue;
+            String arn = CommonUtil.getSnsTopicArn(subscription.getChannel_name());
+            inbox_msg.addAll(getInboxMessageRecord(arn, request.getMsg_timestamp()));
+            logger.log("Inbox Message ArrayList Size - Topic: " + inbox_msg.size());
+        }
+        inbox_msg.addAll(getInboxMessageRecord(request.getApp_reg_id(), request.getMsg_timestamp()));
+        logger.log("Inbox Message ArrayList Size - Total: " + inbox_msg.size());
+        Collections.sort(inbox_msg, new InboxMessageRecord.SortByDate());
+
+        HashMap<String, Object> rs = new HashMap<String, Object>();
+        rs.put("inbox_msg", inbox_msg.toArray(new InboxMessageRecord[7]));
+        logger.log("7 Records ArrayList: " + new Gson().toJson(rs.get("inbox_msg")));
+        return new FunctionStatus(true, rs);
+    }
+
+    private static ArrayList<InboxMessageRecord> getInboxMessageRecord(String target, String msg_timestamp) {
+        Table table = dynamoDB.getTable("InboxRecord");
+        Index index = table.getIndex("Target-MsgTimestamp-GSI");
 
         ItemCollection<QueryOutcome> items = null;
         QuerySpec querySpec = new QuerySpec();
 
-        if ("TargetArnIndex".equals(tableIndexName)) {
-            querySpec.withKeyConditionExpression("targetArn = :v1 AND msg_timestamp > :v2")
+        if ("Target-MsgTimestamp-GSI".equals(index.getIndexName())) {
+            querySpec.withKeyConditionExpression("target = :v1 AND msg_timestamp > :v2")
                     .withValueMap(new ValueMap()
-                            .withString(":v1", arn)
+                            .withString(":v1", target)
                             .withString(":v2", msg_timestamp)
                     );
             items = index.query(querySpec);
@@ -167,12 +257,13 @@ public class DynamoDBService {
         Iterator<Item> iterator = items.iterator();
 
         while (iterator.hasNext()) {
-            Item item = iterator.next();
-            logger.log("GsonA: " + item.toJSON());
-            InboxRecord tempTable = new Gson().fromJson(item.toJSON().toString(), InboxRecord.class);
+            String temp = iterator.next().toJSONPretty();
+            logger.log("getInboxMessageRecord: " + temp);
+            InboxRecord tempTable = new Gson().fromJson(temp, InboxRecord.class);
             list.add(tempTable);
         }
 
+        ArrayList<InboxMessageRecord> inboxMessageRecordArray = new ArrayList<InboxMessageRecord>();
         for (InboxRecord tempTable : list) {
             InboxMessageRecord record = new Gson().fromJson(tempTable.convertToJsonString(), InboxMessageRecord.class);
             record.setMessage(new Gson().fromJson(tempTable.getMessage().convertToJsonString(), InboxMessageRecord.class));

@@ -11,8 +11,7 @@ public class AckRecord {
     private String read_timestamp;
     private Remark supplementary_field;
 
-    @DynamoDBHashKey
-    @DynamoDBAttribute(attributeName="msg_id")
+    @DynamoDBHashKey(attributeName="msg_id")
     public String getMsg_id() {
         return msg_id;
     }
@@ -20,8 +19,7 @@ public class AckRecord {
         this.msg_id = msg_id;
     }
 
-    @DynamoDBRangeKey
-    @DynamoDBAttribute(attributeName="app_reg_id")
+    @DynamoDBRangeKey(attributeName="app_reg_id")
     public String getApp_reg_id() {
         return app_reg_id;
     }

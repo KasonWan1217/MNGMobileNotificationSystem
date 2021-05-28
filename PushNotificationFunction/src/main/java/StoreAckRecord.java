@@ -4,11 +4,15 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import object.FunctionStatus;
 import object.db.AckRecord;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
+import util.CommonUtil;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,8 +27,17 @@ public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEven
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent().withHeaders(headers);
         ResponseMessage output = null;
         if (input != null) {
+            ArrayList<FunctionStatus> fs_all = new ArrayList<FunctionStatus>();
             AckRecord recordTable = new Gson().fromJson(input.getBody(), AckRecord.class);
-            output = new DynamoDBService().insertData(recordTable);
+            recordTable.setRead_timestamp(CommonUtil.getCurrentTime());
+            fs_all.add(DynamoDBService.saveData(recordTable));
+            if(! fs_all.get(fs_all.size()-1).isStatus()) {
+                logger.log("\nError : " + new GsonBuilder().setPrettyPrinting().create().toJson(fs_all));
+                return response.withStatusCode(200).withBody(new ResponseMessage(fs_all.get(fs_all.size() - 1)).convertToJsonString());
+            }
+
+            ResponseMessage.Message rs_msg = new ResponseMessage.Message();
+            output = new ResponseMessage(200, rs_msg);
             return response.withStatusCode(200).withBody(output.convertToJsonString());
         } else {
             output = new ResponseMessage(500, new ResponseMessage.Message("Request Error.", "Please check the Request Json."));

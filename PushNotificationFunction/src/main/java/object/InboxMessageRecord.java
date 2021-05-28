@@ -2,6 +2,8 @@ package object;
 
 import com.google.gson.Gson;
 
+import java.util.Comparator;
+
 public class InboxMessageRecord {
     private String msg_id;
     private String title;
@@ -61,6 +63,13 @@ public class InboxMessageRecord {
 
     public void setMsg_timestamp(String msg_timestamp) {
         this.msg_timestamp = msg_timestamp;
+    }
+
+    public static class SortByDate implements Comparator<InboxMessageRecord> {
+        @Override
+        public int compare(InboxMessageRecord a, InboxMessageRecord b) {
+            return a.msg_timestamp.compareTo(b.msg_timestamp);
+        }
     }
 
     public String convertToJsonString() {

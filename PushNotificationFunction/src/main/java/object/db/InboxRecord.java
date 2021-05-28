@@ -3,10 +3,12 @@ package object.db;
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.google.gson.Gson;
 
+import java.util.List;
+
 @DynamoDBTable(tableName = "InboxRecord")
 public class InboxRecord {
     private String msg_id;
-    private String sns_msg_id;
+    private List<String> sns_msg_id;
     private String msg_timestamp;
     private String target;
     private String target_type;
@@ -15,8 +17,8 @@ public class InboxRecord {
     private int badge;
     private String sound;
     private String pic_url;
-    private int direct_msg;
-    private String message_qty;
+    private boolean direct_msg;
+    private String msg_qty;
     private String create_datetime;
     private Remark supplementary_field;
 
@@ -32,11 +34,10 @@ public class InboxRecord {
         this.sound = request.getSound();
         this.msg_timestamp = request.getMsg_timestamp();
         this.pic_url = request.getPic_url();
-        this.direct_msg = request.getDirect_msg();
+        this.setDirect_msg(request.isDirect_msg());
     }
 
-    @DynamoDBHashKey
-    @DynamoDBAttribute(attributeName="msg_id")
+    @DynamoDBHashKey(attributeName="msg_id")
     public String getMsg_id() {
         return msg_id;
     }
@@ -45,10 +46,10 @@ public class InboxRecord {
     }
 
     @DynamoDBAttribute(attributeName="sns_msg_id")
-    public String getSns_msg_id() {
+    public List<String> getSns_msg_id() {
         return sns_msg_id;
     }
-    public void setSns_msg_id(String sns_msg_id) {
+    public void setSns_msg_id(List<String> sns_msg_id) {
         this.sns_msg_id = sns_msg_id;
     }
 
@@ -116,19 +117,20 @@ public class InboxRecord {
         this.pic_url = pic_url;
     }
 
-    public int getDirect_msg() {
+    @DynamoDBIgnore
+    public boolean isDirect_msg() {
         return direct_msg;
     }
-    public void setDirect_msg(int direct_msg) {
+    public void setDirect_msg(boolean direct_msg) {
         this.direct_msg = direct_msg;
     }
 
-    @DynamoDBAttribute(attributeName="message_qty")
-    public String getMessage_qty() {
-        return message_qty;
+    @DynamoDBAttribute(attributeName="msg_qty")
+    public String getMsg_qty() {
+        return msg_qty;
     }
-    public void setMessage_qty(String message_qty) {
-        this.message_qty = message_qty;
+    public void setMsg_qty(String msg_qty) {
+        this.msg_qty = msg_qty;
     }
 
     @DynamoDBAttribute(attributeName="create_datetime")

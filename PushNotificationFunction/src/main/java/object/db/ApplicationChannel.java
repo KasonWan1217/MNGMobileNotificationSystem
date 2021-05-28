@@ -6,37 +6,36 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBRangeKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
 import com.google.gson.Gson;
 
-@DynamoDBTable(tableName = "SNSAccount")
-public class SNSAccount {
-    private String app_reg_id;
-    private String device_token;
+@DynamoDBTable(tableName = "ApplicationChannel")
+public class ApplicationChannel {
+    private String channel_name;
     private String app_name;
+    private String channel_type;
     private String mobile_type;
     private String create_datetime;
-    private String status;
 
-    @DynamoDBHashKey(attributeName="app_reg_id")
-    public String getApp_reg_id() {
-        return app_reg_id;
+    @DynamoDBHashKey(attributeName="channel_name")
+    public String getChannel_name() {
+        return channel_name;
     }
-    public void setApp_reg_id(String app_reg_id) {
-        this.app_reg_id = app_reg_id;
-    }
-
-    @DynamoDBAttribute(attributeName="device_token")
-    public String getDevice_token() {
-        return device_token;
-    }
-    public void setDevice_token(String device_token) {
-        this.device_token = device_token;
+    public void setChannel_name(String channel_name) {
+        this.channel_name = channel_name;
     }
 
-    @DynamoDBAttribute(attributeName="app_name")
+    @DynamoDBRangeKey(attributeName="app_name")
     public String getApp_name() {
         return app_name;
     }
     public void setApp_name(String app_name) {
         this.app_name = app_name;
+    }
+
+    @DynamoDBAttribute(attributeName="channel_type")
+    public String getChannel_type() {
+        return channel_type;
+    }
+    public void setChannel_type(String channel_type) {
+        this.channel_type = channel_type;
     }
 
     @DynamoDBAttribute(attributeName="mobile_type")
@@ -53,14 +52,6 @@ public class SNSAccount {
     }
     public void setCreate_datetime(String create_datetime) {
         this.create_datetime = create_datetime;
-    }
-
-    @DynamoDBAttribute(attributeName="status")
-    public String getStatus() {
-        return status;
-    }
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public String convertToJsonString() {

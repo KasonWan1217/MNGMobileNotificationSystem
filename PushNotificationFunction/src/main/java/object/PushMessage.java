@@ -112,7 +112,7 @@ public class PushMessage {
 
     public class PushDetails {
         private String msg_id;
-        private String type;
+        private String action_category;
         private String title;
         private String sub_title;
         private String body;
@@ -122,7 +122,7 @@ public class PushMessage {
 
         public PushDetails(InboxRecord obj) {
             this.msg_id = obj.getMsg_id();
-            this.type = obj.getAction_category();
+            this.action_category = obj.getAction_category();
             this.title = obj.getMessage().getTitle();
             this.sub_title = obj.getMessage().getSub_title();
             this.body = obj.getMessage().getBody();
@@ -139,12 +139,12 @@ public class PushMessage {
             this.msg_id = msg_id;
         }
 
-        public String getType() {
-            return type;
+        public String getAction_category() {
+            return action_category;
         }
 
-        public void setType(String type) {
-            this.type = type;
+        public void setAction_category(String action_category) {
+            this.action_category = action_category;
         }
 
         public String getTitle() {
