@@ -2,47 +2,51 @@ package object;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ResponseMessage {
 
     private Integer code;
-    private Message message;
+    private List<Message> message;
 
-    public Message getMessage() {
-        return message;
+    public ResponseMessage(Integer code, String fail_msg) {
+        this.code = code;
+        Message message = new Message(code, fail_msg, fail_msg);
+        if (this.message == null)
+            this.message = new ArrayList<Message>();
+        this.message.add(message);
+    }
+
+    public ResponseMessage(Integer code, Message message) {
+        this.code = code;
+        if (this.message == null)
+            this.message = new ArrayList<Message>();
+        this.message.add(message);
+    }
+
+    public ResponseMessage(Integer code, List<Message> message) {
+        this.code = code;
+        this.message = message;
     }
 
     public Integer getCode() {
         return code;
     }
-
     public void setCode(Integer code) {
         this.code = code;
     }
 
-    public void setMessage(Message message) {
-        this.message = message;
+    public List<Message> getMessage() {
+        return message;
     }
-
-    public ResponseMessage(int code, Message message) {
-        this.code = code;
+    public void setMessage(List<Message> message) {
         this.message = message;
-    }
-
-    public ResponseMessage(FunctionStatus obj) {
-        if(obj.isStatus()) {
-            this.code = 200;
-            Gson gson = new Gson();
-            String jsonString = gson.toJson(obj.getResponse());
-            Message message = gson.fromJson(jsonString, Message.class);
-            this.message = message;
-        } else {
-            this.code = obj.getCode();
-            Message message = new Message(obj.getError_msg(), obj.getError_msg_detail());
-            this.message = message;
-        }
     }
 
     public static class Message {
+        private Integer status_code;
+        private String datetime;
         private String msg_id;
         private String app_reg_id;
         private String msg_qty;
@@ -52,27 +56,27 @@ public class ResponseMessage {
 
         public Message() {}
 
-        public Message combine(Message obj) {
-            this.msg_id = obj.getMsg_id() == null   ? this.msg_id : obj.getMsg_id();
-            this.msg_qty = obj.getMsg_qty() == null ? this.msg_qty : obj.getMsg_qty();
-            this.error_msg = obj.getError_msg() == null       ? this.error_msg : obj.getError_msg();
-            this.error_msg_detail = obj.getError_msg_detail() == null       ? this.error_msg_detail : obj.getError_msg_detail();
-            this.inbox_msg = obj.getInbox_msg() == null     ? this.inbox_msg : obj.getInbox_msg();
-            return this;
-        }
-
         public Message(String msg_id, int msg_qty) {
             this.msg_id = msg_id;
             this.msg_qty = String.valueOf(msg_qty);
         }
 
-        public Message(String error_msg, String error_msg_detail) {
+        public Message(Integer status_code, String error_msg, String error_msg_detail) {
+            this.status_code = status_code;
             this.error_msg = error_msg;
             this.error_msg_detail = error_msg_detail;
         }
 
         public Message(InboxMessageRecord[] inbox_msg) {
             this.inbox_msg = inbox_msg;
+        }
+
+        public Integer getStatus_code() {
+            return status_code;
+        }
+
+        public void setStatus_code(Integer status_code) {
+            this.status_code = status_code;
         }
 
         public String getMsg_id() {
@@ -89,6 +93,14 @@ public class ResponseMessage {
 
         public void setApp_reg_id(String app_reg_id) {
             this.app_reg_id = app_reg_id;
+        }
+
+        public String getDatetime() {
+            return datetime;
+        }
+
+        public void setDatetime(String datetime) {
+            this.datetime = datetime;
         }
 
         public String getMsg_qty() {

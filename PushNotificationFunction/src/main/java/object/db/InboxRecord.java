@@ -18,7 +18,7 @@ public class InboxRecord {
     private String sound;
     private String pic_url;
     private boolean direct_msg;
-    private String msg_qty;
+    private Integer msg_qty;
     private String create_datetime;
     private Remark supplementary_field;
 
@@ -126,10 +126,10 @@ public class InboxRecord {
     }
 
     @DynamoDBAttribute(attributeName="msg_qty")
-    public String getMsg_qty() {
+    public Integer getMsg_qty() {
         return msg_qty;
     }
-    public void setMsg_qty(String msg_qty) {
+    public void setMsg_qty(Integer msg_qty) {
         this.msg_qty = msg_qty;
     }
 

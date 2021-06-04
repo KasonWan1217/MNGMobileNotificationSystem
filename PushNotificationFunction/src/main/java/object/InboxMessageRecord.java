@@ -68,7 +68,7 @@ public class InboxMessageRecord {
     public static class SortByDate implements Comparator<InboxMessageRecord> {
         @Override
         public int compare(InboxMessageRecord a, InboxMessageRecord b) {
-            return a.msg_timestamp.compareTo(b.msg_timestamp);
+            return b.msg_timestamp.compareTo(a.msg_timestamp);
         }
     }
 

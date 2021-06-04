@@ -2,7 +2,7 @@ package util;
 
 public class DBEnumValue {
     public enum AppName {
-        BEA_APP_Grp
+        BEA_APP_Group
     }
     public enum ArnType {
         Topic,

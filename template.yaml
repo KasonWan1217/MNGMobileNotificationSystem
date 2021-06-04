@@ -20,7 +20,7 @@ Parameters:
   Stage:
     Type: String
     Description: Development Stage
-    Default: Dev
+    Default: DEV
 
 
 Resources:

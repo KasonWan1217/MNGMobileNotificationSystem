@@ -1,3 +1,4 @@
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -11,10 +12,13 @@ import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
 import util.CommonUtil;
+import util.ErrorMessageUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import static util.ErrorMessageUtil.ErrorMessage.*;
 
 public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -25,24 +29,31 @@ public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEven
         headers.put("Content-Type", "application/json");
         headers.put("X-Custom-Header", "application/json");
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent().withHeaders(headers);
-        ResponseMessage output = null;
+        ResponseMessage output;
         if (input != null) {
+            Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<FunctionStatus>();
-            AckRecord recordTable = new Gson().fromJson(input.getBody(), AckRecord.class);
+            AckRecord recordTable = gson.fromJson(input.getBody(), AckRecord.class);
+            if (! CommonUtil.validate_AppRegId(recordTable.getApp_reg_id())) {
+                ResponseMessage responseMsg = ErrorMessageUtil.getErrorResponseMessage(AppRegId_Invalid_Error);
+                return response.withStatusCode(200).withBody(responseMsg.convertToJsonString());
+            }
             recordTable.setRead_timestamp(CommonUtil.getCurrentTime());
-            fs_all.add(DynamoDBService.saveData(recordTable));
+            Map expected = new HashMap();
+            expected.put("msg_id", new ExpectedAttributeValue(false));
+            expected.put("app_reg_id", new ExpectedAttributeValue(false));
+            fs_all.add(DynamoDBService.insertData(recordTable, expected));
             if(! fs_all.get(fs_all.size()-1).isStatus()) {
-                logger.log("\nError : " + new GsonBuilder().setPrettyPrinting().create().toJson(fs_all));
-                return response.withStatusCode(200).withBody(new ResponseMessage(fs_all.get(fs_all.size() - 1)).convertToJsonString());
+                logger.log("\nError : " + gson.toJson(fs_all));
+                return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Insert_Error.getCode(), fs_all.get(fs_all.size() - 1).convertToMessage()).convertToJsonString());
             }
 
             ResponseMessage.Message rs_msg = new ResponseMessage.Message();
             output = new ResponseMessage(200, rs_msg);
-            return response.withStatusCode(200).withBody(output.convertToJsonString());
-        } else {
-            output = new ResponseMessage(500, new ResponseMessage.Message("Request Error.", "Please check the Request Json."));
+        }  else {
+            output = new ResponseMessage(Request_Format_Error.getCode(), Request_Format_Error.getError_msg());
             logger.log("Request Error - Message: " + output.getMessage());
-            return response.withStatusCode(200).withBody(output.convertToJsonString());
         }
+        return response.withStatusCode(200).withBody(output.convertToJsonString());
     }
 }
