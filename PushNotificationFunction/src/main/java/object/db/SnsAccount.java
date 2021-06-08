@@ -83,6 +83,7 @@ public class SnsAccount {
         }
     }
 
+    @DynamoDBIgnore
     public String getApp_id() {
         return app_id;
     }
