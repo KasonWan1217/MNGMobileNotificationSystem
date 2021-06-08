@@ -262,15 +262,15 @@ Resources:
         - AttributeName: "app_reg_id"
           KeyType: "RANGE"
       TableName: "AckRecord"
-#      LocalSecondaryIndexes:
-#        - IndexName: "MsgId-AppRegId-LSI"
-#          KeySchema:
-#            - AttributeName: "msg_id"
-#              KeyType: "HASH"
-#            - AttributeName: "app_reg_id"
-#              KeyType: "RANGE"
-#          Projection:
-#            ProjectionType: "ALL"
+      LocalSecondaryIndexes:
+        - IndexName: "MsgId-AppRegId-LSI"
+          KeySchema:
+            - AttributeName: "msg_id"
+              KeyType: "HASH"
+            - AttributeName: "app_reg_id"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: "ALL"
       StreamSpecification:
         StreamViewType: NEW_AND_OLD_IMAGES
       BillingMode: PAY_PER_REQUEST
@@ -281,8 +281,6 @@ Resources:
       AttributeDefinitions:
         - AttributeName: "app_reg_id"
           AttributeType: "S"
-        - AttributeName: "app_name"
-          AttributeType: "S"
         - AttributeName: "device_token"
           AttributeType: "S"
         - AttributeName: "active_status"
@@ -292,14 +290,6 @@ Resources:
           KeyType: "HASH"
       TableName: "SnsAccount"
       GlobalSecondaryIndexes:
-        - IndexName: "AppName-Sorting-GSI"
-          KeySchema:
-            - AttributeName: "app_name"
-              KeyType: "HASH"
-          Projection:
-            NonKeyAttributes:
-              - "create_datetime"
-            ProjectionType: "INCLUDE"
         - IndexName: "AppRegId-ActiveStatus-GSI"
           KeySchema:
             - AttributeName: "app_reg_id"

@@ -267,47 +267,6 @@ public class DynamoDBService {
 
     }
 
-    public static FunctionStatus getSnsAccount_LatestAppRegID(String app_name) {
-        try {
-            Table table = dynamoDB.getTable("SnsAccount");
-            Index index = table.getIndex("AppName-Sorting-GSI");
-
-            ItemCollection<QueryOutcome> items = null;
-            QuerySpec querySpec = new QuerySpec();
-            logger.log("app_name: " + app_name);
-            if ("AppName-Sorting-GSI".equals(index.getIndexName())) {
-                querySpec.withKeyConditionExpression("app_name = :v1")
-                        .withValueMap(new ValueMap()
-                                .withString(":v1", app_name)
-                        ).withScanIndexForward(false).setMaxResultSize(1);
-                items = index.query(querySpec);
-                if (items == null) {
-                    logger.log("getSnsAccount_LatestAppRegID : item is null");
-                } else {
-                    logger.log("getSnsAccount_LatestAppRegID : item is not null");
-                }
-            }
-
-            assert items != null;
-            Iterator<Item> iterator = items.iterator();
-            String app_reg_id = "";
-            while (iterator.hasNext()) {
-                app_reg_id = new Gson().fromJson(iterator.next().toJSONPretty(), SnsAccount.class).getApp_reg_id();
-            }
-
-            HashMap<String, Object> rs = new HashMap<>();
-            rs.put("app_reg_id", app_reg_id);
-            return new FunctionStatus(true, rs);
-        } catch (AmazonServiceException ase) {
-            logger.log("Could not complete operation");
-            return new FunctionStatus(false, ase.getStatusCode(), ase.getMessage(), ase.getErrorMessage());
-        } catch (AmazonClientException ace) {
-            logger.log("Internal error occurred communicating with DynamoDB");
-            logger.log("Error Message:  " + ace.getMessage());
-            return new FunctionStatus(false, AmazonClient_Error.getCode(), ace.getMessage());
-        }
-    }
-
     private static FunctionStatus getInboxMessageRecord(String target, String msg_timestamp) {
         try {
             Table table = dynamoDB.getTable("InboxRecord");
