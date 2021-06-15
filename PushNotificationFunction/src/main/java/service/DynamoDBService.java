@@ -8,7 +8,6 @@ import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Index;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.model.AmazonDynamoDBException;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
@@ -25,7 +24,7 @@ import object.db.ApplicationChannel;
 import object.db.InboxRecord;
 import object.InboxMessageRecord;
 import object.db.SnsAccount;
-import object.db.SnsAccount.Subscriptions;
+import object.db.SnsAccount.Subscription;
 import object.request.RetrieveInboxRecordRequest;
 import util.DBEnumValue;
 import util.ErrorMessageUtil;
@@ -92,13 +91,16 @@ public class DynamoDBService {
     }
 
     public static FunctionStatus getSubscriptionsList(String app_reg_id) {
-        FunctionStatus functionStatus = getSnsAccount_Subscriptions(app_reg_id);
+        FunctionStatus functionStatus = getSnsAccount_AppRegId(app_reg_id);
+        SnsAccount snsAccount = (SnsAccount) functionStatus.getResponse().get("snsAccount");
         if(! functionStatus.isStatus()) {
             logger.log("\nError getSubscriptionsList: " + new Gson().toJson(functionStatus));
             return functionStatus;
+        } else if (snsAccount == null){
+            return ErrorMessageUtil.getFunctionStatus(AppRegId_Null_Error);
         }
-        logger.log("\n Sns Account:  " + new Gson().toJson(functionStatus.getResponse().get("snsAccount")) + "\n");
-        List<Subscriptions> arrayList_channelName = ((SnsAccount) functionStatus.getResponse().get("snsAccount")).getSubscriptions();
+
+        List<Subscription> arrayList_channelName = snsAccount.getSubscriptions();
         if (arrayList_channelName == null || arrayList_channelName.size() == 0) {
             return ErrorMessageUtil.getFunctionStatus(AppRegId_Inactive_Error);
         }
@@ -107,10 +109,10 @@ public class DynamoDBService {
         return new FunctionStatus(true, rs);
     }
 
-    public static FunctionStatus getInboxMessageRecord(RetrieveInboxRecordRequest request, List<Subscriptions> arrayList_channelName) {
+    public static FunctionStatus getInboxMessageRecord(RetrieveInboxRecordRequest request, List<Subscription> arrayList_channelName) {
         List<InboxMessageRecord> inbox_msg = new ArrayList<>();
-        arrayList_channelName.add(new Subscriptions(request.getApp_reg_id(),"","",""));
-        for (Subscriptions subscription : arrayList_channelName) {
+        arrayList_channelName.add(new Subscription(request.getApp_reg_id(),"","",""));
+        for (Subscription subscription : arrayList_channelName) {
             FunctionStatus temp_fs = getInboxMessageRecord(subscription.getChannel_name(), request.getMsg_timestamp());
             if (! temp_fs.isStatus()) {
                 logger.log("\nError : " + new GsonBuilder().setPrettyPrinting().create().toJson(temp_fs));
@@ -130,51 +132,7 @@ public class DynamoDBService {
         return new FunctionStatus(true, rs);
     }
 
-    public static FunctionStatus getActiveSnsAccount(String device_token, String active_status) {
-        try {
-            Table table = dynamoDB.getTable("SnsAccount");
-            Index index = table.getIndex("DeviceToken-ActiveStatus-GSI");
-
-            ItemCollection<QueryOutcome> items = null;
-            QuerySpec querySpec = new QuerySpec();
-
-            if ("DeviceToken-ActiveStatus-GSI".equals(index.getIndexName())) {
-                querySpec.withKeyConditionExpression("device_token = :v1 AND active_status = :v2")
-                        .withValueMap(new ValueMap()
-                                .withString(":v1", device_token)
-                                .withString(":v2", active_status)
-                        ).setMaxResultSize(1);
-                items = index.query(querySpec);
-                if (items == null) {
-                    logger.log("getActiveSnsAccount : item is null");
-                } else {
-                    logger.log("getActiveSnsAccount : item is not null");
-                }
-            }
-
-            assert items != null;
-            Iterator<Item> iterator = items.iterator();
-            SnsAccount snsAccount = null;
-            while (iterator.hasNext()) {
-                Item item = iterator.next();
-                logger.log("getSnsAccount_checkStatus: " + item.toJSONPretty());
-                snsAccount = new Gson().fromJson(item.toJSON(), SnsAccount.class);
-            }
-            HashMap<String, Object> rs = new HashMap<>();
-            rs.put("SnsAccount", snsAccount);
-            return new FunctionStatus(true, rs);
-        } catch (AmazonServiceException ase) {
-            logger.log("Could not complete operation");
-            return new FunctionStatus(false, ase.getStatusCode(), ase.getMessage(), ase.getErrorMessage());
-        } catch (AmazonClientException ace) {
-            logger.log("Internal error occurred communicating with DynamoDB");
-            logger.log("Error Message:  " + ace.getMessage());
-            return new FunctionStatus(false, AmazonClient_Error.getCode(), ace.getMessage());
-        }
-
-    }
-
-    public static FunctionStatus getSnsAccount_Subscriptions(String app_reg_id) {
+    public static FunctionStatus getSnsAccount_AppRegId(String app_reg_id) {
         try {
             Table table = dynamoDB.getTable("SnsAccount");
             Index index = table.getIndex("AppRegId-ActiveStatus-GSI");
@@ -190,18 +148,18 @@ public class DynamoDBService {
                         ).setMaxResultSize(1);
                 items = index.query(querySpec);
                 if (items == null) {
-                    logger.log("getSubscriptions : item is null");
+                    logger.log("getSnsAccount : item is null");
                 } else {
-                    logger.log("getSubscriptions : item is not null");
+                    logger.log("getSnsAccount : item is not null");
                 }
             }
 
             assert items != null;
             Iterator<Item> iterator = items.iterator();
-            SnsAccount snsAccount = new SnsAccount();
+            SnsAccount snsAccount = null;
             while (iterator.hasNext()) {
                 Item item = iterator.next();
-                logger.log("Subscriptions List: " + item.toJSONPretty());
+                logger.log("getSnsAccount: " + item.toJSONPretty());
                 snsAccount = new Gson().fromJson(item.toJSON(), SnsAccount.class);
             }
             HashMap<String, Object> rs = new HashMap<>();
@@ -215,6 +173,50 @@ public class DynamoDBService {
             logger.log("Error Message:  " + ace.getMessage());
             return new FunctionStatus(false, AmazonClient_Error.getCode(), ace.getMessage());
         }
+    }
+
+    public static FunctionStatus getSnsAccount_DeviceToken(String device_token) {
+        try {
+            Table table = dynamoDB.getTable("SnsAccount");
+            Index index = table.getIndex("DeviceToken-ActiveStatus-GSI");
+
+            ItemCollection<QueryOutcome> items = null;
+            QuerySpec querySpec = new QuerySpec();
+
+            if ("DeviceToken-ActiveStatus-GSI".equals(index.getIndexName())) {
+                querySpec.withKeyConditionExpression("device_token = :v1 AND active_status = :v2")
+                        .withValueMap(new ValueMap()
+                                .withString(":v1", device_token)
+                                .withString(":v2", DBEnumValue.Status.Success.toString())
+                        ).setMaxResultSize(1);
+                items = index.query(querySpec);
+                if (items == null) {
+                    logger.log("getActiveSnsAccount : item is null");
+                } else {
+                    logger.log("getActiveSnsAccount : item is not null");
+                }
+            }
+
+            assert items != null;
+            Iterator<Item> iterator = items.iterator();
+            SnsAccount snsAccount = null;
+            while (iterator.hasNext()) {
+                Item item = iterator.next();
+                logger.log("getSnsAccount: " + item.toJSONPretty());
+                snsAccount = new Gson().fromJson(item.toJSON(), SnsAccount.class);
+            }
+            HashMap<String, Object> rs = new HashMap<>();
+            rs.put("snsAccount", snsAccount);
+            return new FunctionStatus(true, rs);
+        } catch (AmazonServiceException ase) {
+            logger.log("Could not complete operation");
+            return new FunctionStatus(false, ase.getStatusCode(), ase.getMessage(), ase.getErrorMessage());
+        } catch (AmazonClientException ace) {
+            logger.log("Internal error occurred communicating with DynamoDB");
+            logger.log("Error Message:  " + ace.getMessage());
+            return new FunctionStatus(false, AmazonClient_Error.getCode(), ace.getMessage());
+        }
+
     }
 
     public static FunctionStatus getChannelList(String app_name, String mobile_type) {

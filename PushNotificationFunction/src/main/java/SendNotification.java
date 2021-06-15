@@ -11,7 +11,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import object.FunctionStatus;
-import object.db.SnsAccount.Subscriptions;
+import object.db.SnsAccount.Subscription;
 import service.DynamoDBService;
 import service.SNSNotificationService;
 import object.db.InboxRecord;
@@ -58,7 +58,7 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
 
             if (DBEnumValue.TargetType.Personal.toString().equals(recordTable.getTarget_type())) {
                 //Send Personal Notification
-                //Get all Subscriptions List form db for Send Push
+                //Get all Subscription List form db for Send Push
                 fs_all.add(DynamoDBService.getSubscriptionsList(recordTable.getTarget()));
                 if(! fs_all.get(fs_all.size()-1).isStatus()) {
                     fs_all.add(DynamoDBService.deleteData(recordTable));
@@ -68,7 +68,7 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
                     return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Query_Error.getCode(), message).convertToJsonString());
                 }
 
-                for (Subscriptions subscriptions : (List<Subscriptions>) fs_all.get(fs_all.size() - 1).getResponse().get("arrayList_channelName")) {
+                for (Subscription subscriptions : (List<Subscription>) fs_all.get(fs_all.size() - 1).getResponse().get("arrayList_channelName")) {
                     if (DBEnumValue.ArnType.Platform.toString().equals(subscriptions.getChannel_type())) {
                         fs_all.add(new SNSNotificationService().publishNotification(recordTable, subscriptions.getArn()));
                         if (!fs_all.get(fs_all.size() - 1).isStatus()) {

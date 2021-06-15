@@ -48,8 +48,7 @@ public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEven
                 return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Insert_Error.getCode(), fs_all.get(fs_all.size() - 1).convertToMessage()).convertToJsonString());
             }
 
-            ResponseMessage.Message rs_msg = new ResponseMessage.Message();
-            output = new ResponseMessage(200, rs_msg);
+            output = new ResponseMessage(200, new ResponseMessage.Message());
         }  else {
             output = new ResponseMessage(Request_Format_Error.getCode(), Request_Format_Error.getError_msg());
             logger.log("Request Error - Message: " + output.getMessage());

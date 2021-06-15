@@ -6,7 +6,7 @@ import com.google.gson.GsonBuilder;
 import object.FunctionStatus;
 import object.PushMessage;
 import object.db.InboxRecord;
-import object.db.SnsAccount.Subscriptions;
+import object.db.SnsAccount.Subscription;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -94,9 +94,9 @@ public class SNSNotificationService {
         }
     }
 
-    public static FunctionStatus resetAccount(List<Subscriptions> topicSubscriptions) {
+    public static FunctionStatus resetAccount(List<Subscription> topicSubscriptions) {
         logger.log("\nsubscribe topicSubscriptions.size(): " + topicSubscriptions.size() + "\n");
-        for (Subscriptions subscription: topicSubscriptions) {
+        for (Subscription subscription: topicSubscriptions) {
             logger.log("\nsubscribe : " + subscription.convertToJsonString() + "\n");
             FunctionStatus responseMessage = (ArnType.Platform.toString().equals((subscription.getChannel_type()))) ?
                                                                                     unregister(subscription.getArn()):

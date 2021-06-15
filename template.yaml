@@ -204,6 +204,23 @@ Resources:
   #            Auth:
   #              ApiKeyRequired: true
 
+  SubscribeTopicFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: PushNotificationFunction/
+      Handler: SubscribeTopic::handleRequest
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Events:
+        SubscribeTopicAPI:
+          Type: Api
+          Properties:
+            Path: /subscribeTopic
+            Method: POST
+            RestApiId:
+              Ref: ApiGatewayApi
+  #            Auth:
+  #              ApiKeyRequired: true
+
   RetrieveInboxRecordFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
@@ -297,9 +314,7 @@ Resources:
             - AttributeName: "active_status"
               KeyType: "RANGE"
           Projection:
-            NonKeyAttributes:
-              - "subscriptions"
-            ProjectionType: "INCLUDE"
+            ProjectionType: "ALL"
         - IndexName: "DeviceToken-ActiveStatus-GSI"
           KeySchema:
             - AttributeName: "device_token"
@@ -381,6 +396,14 @@ Outputs:
   RetrieveInboxRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt RetrieveInboxRecordFunction.Arn
+
+
+  SubscribeTopicAPI:
+    Description: "API Gateway endpoint URL for Prod stage for Subscribe Topic Function"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/subscribeTopic/"
+  SubscribeTopicFunction:
+    Description: "Subscribe Topic Lambda Function ARN"
+    Value: !GetAtt SubscribeTopicFunction.Arn
 
   InboxRecord:
     Description: "InboxRecord's ARN"

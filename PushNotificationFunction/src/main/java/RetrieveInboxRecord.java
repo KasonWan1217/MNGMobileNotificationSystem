@@ -8,7 +8,7 @@ import com.google.gson.GsonBuilder;
 import object.FunctionStatus;
 import object.InboxMessageRecord;
 import object.ResponseMessage;
-import object.db.SnsAccount.Subscriptions;
+import object.db.SnsAccount.Subscription;
 import object.request.RetrieveInboxRecordRequest;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
@@ -41,7 +41,7 @@ public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyReques
                 return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Query_Error.getCode(), fs_all.get(fs_all.size() - 1).convertToMessage()).convertToJsonString());
             }
 
-            List<Subscriptions> arrayList_topicName = (List<Subscriptions>) fs_all.get(fs_all.size() - 1).getResponse().get("arrayList_channelName");
+            List<Subscription> arrayList_topicName = (List<Subscription>) fs_all.get(fs_all.size() - 1).getResponse().get("arrayList_channelName");
             fs_all.add(DynamoDBService.getInboxMessageRecord(request, arrayList_topicName));
             if(! fs_all.get(fs_all.size()-1).isStatus()) {
                 logger.log("\nError : " + gson.toJson(fs_all));

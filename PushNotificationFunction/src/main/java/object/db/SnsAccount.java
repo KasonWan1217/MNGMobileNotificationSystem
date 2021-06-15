@@ -14,7 +14,7 @@ public class SnsAccount {
     private String mobile_type;
     private String create_datetime;
     private String active_status;
-    private List<Subscriptions> subscriptions;
+    private List<Subscription> subscriptions;
 
     private String app_id;
 
@@ -67,15 +67,15 @@ public class SnsAccount {
     }
 
     @DynamoDBAttribute(attributeName="subscriptions")
-    public List<Subscriptions> getSubscriptions() {
+    public List<Subscription> getSubscriptions() {
         return subscriptions;
     }
-    public void setSubscriptions(List<Subscriptions> subscriptions) {
+    public void setSubscriptions(List<Subscription> subscriptions) {
         this.subscriptions = subscriptions;
     }
-    public void addSubscriptions(Subscriptions subscription) {
+    public void addSubscriptions(Subscription subscription) {
         if (this.subscriptions == null) {
-            List<Subscriptions> list = new ArrayList<Subscriptions>();
+            List<Subscription> list = new ArrayList<Subscription>();
             list.add(subscription);
             this.subscriptions = list;
         } else {
@@ -92,13 +92,22 @@ public class SnsAccount {
     }
 
     @DynamoDBDocument
-    public static class Subscriptions {
+    public static class Subscription {
         private String channel_name;
         private String arn;
         private String channel_type;
+        private String ref_platform_name;
         private String create_datetime;
 
-        public Subscriptions(String channel_name, String arn, String channel_type, String create_datetime) {
+        public Subscription(String channel_name, String arn, String channel_type, String ref_platform_name, String create_datetime) {
+            this.channel_name = channel_name;
+            this.arn = arn;
+            this.channel_type = channel_type;
+            this.ref_platform_name = ref_platform_name;
+            this.create_datetime = create_datetime;
+        }
+
+        public Subscription(String channel_name, String arn, String channel_type, String create_datetime) {
             this.channel_name = channel_name;
             this.arn = arn;
             this.channel_type = channel_type;
@@ -124,6 +133,13 @@ public class SnsAccount {
         }
         public void setChannel_type(String channel_type) {
             this.channel_type = channel_type;
+        }
+
+        public String getRef_platform_name() {
+            return ref_platform_name;
+        }
+        public void setRef_platform_name(String ref_platform_name) {
+            this.ref_platform_name = ref_platform_name;
         }
 
         public String getCreate_datetime() {

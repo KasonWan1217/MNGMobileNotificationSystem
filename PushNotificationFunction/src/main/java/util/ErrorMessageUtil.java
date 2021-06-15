@@ -6,6 +6,7 @@ import object.ResponseMessage;
 public class ErrorMessageUtil {
     public enum ErrorMessage {
         AmazonClient_Error(700, "AmazonClient_Error"),                          //700
+        AppRegId_Account_Error(705, "AppRegId_Account_Error"),                            //705
         PlatformName_Null_Error(710, "PlatformName_Null_Error"),                //710
         AppRegId_Invalid_Error(711, "AppRegId_Invalid_Error"),                  //711
         AppRegId_Null_Error(712,"AppRegId_Null_Error"),                         //712
