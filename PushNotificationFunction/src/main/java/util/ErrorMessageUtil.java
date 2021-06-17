@@ -5,22 +5,24 @@ import object.ResponseMessage;
 
 public class ErrorMessageUtil {
     public enum ErrorMessage {
-        AmazonClient_Error(700, "AmazonClient_Error"),                          //700
-        AppRegId_Account_Error(705, "AppRegId_Account_Error"),                            //705
-        PlatformName_Null_Error(710, "PlatformName_Null_Error"),                //710
-        AppRegId_Invalid_Error(711, "AppRegId_Invalid_Error"),                  //711
-        AppRegId_Null_Error(712,"AppRegId_Null_Error"),                         //712
-        AppRegId_Inactive_Error(713,"AppRegId_Inactive_Error"),                 //713
-        DynamoDB_Insert_Error(730,"DynamoDB_Insert_Error"),                     //730
-        DynamoDB_Update_Error(731,"DynamoDB_Update_Error"),                     //731
-        DynamoDB_Delete_Error(732,"DynamoDB_Delete_Error"),                     //732
-        DynamoDB_Query_Error(733,"DynamoDB_Query_Error"),                       //733
-        Sns_Registration_Error(770,"Sns_Registration_Error"),                   //770
-        Sns_Unregister_Error(771,"Sns_Unregister_Error"),                       //771
-        Sns_Subscription_Error(772,"Sns_Subscription_Error"),                   //772
-        Sns_Unsubscribe_Error(773,"Sns_Unsubscribe_Error"),                     //773
-        Sns_Publish_Notification_Error(774,"Sns_Publish_Notification_Error"),   //774
-        Request_Format_Error(500,"Request_Format_Error");                       //500
+        AmazonClient_Error(700, "AmazonClient_Error"),                                  //700
+        AppRegId_Account_Error(705, "AppRegId_Account_Error"),                          //705
+        PlatformName_Null_Error(710, "PlatformName_Null_Error"),                        //710
+        AppRegId_Invalid_Error(711, "AppRegId_Invalid_Error"),                          //711
+        AppRegId_Null_Error(712,"AppRegId_Null_Error"),                                 //712
+        AppRegId_Inactive_Error(713,"AppRegId_Inactive_Error"),                         //713
+        DynamoDB_Insert_Error(730,"DynamoDB_Insert_Error"),                             //730
+        DynamoDB_Update_Error(731,"DynamoDB_Update_Error"),                             //731
+        DynamoDB_Delete_Error(732,"DynamoDB_Delete_Error"),                             //732
+        DynamoDB_Query_Error(733,"DynamoDB_Query_Error"),                               //733
+        Sns_Registration_Error(770,"Sns_Registration_Error"),                           //770
+        Sns_Unregister_Error(771,"Sns_Unregister_Error"),                               //771
+        Sns_Subscription_Error(772,"Sns_Subscription_Error"),                           //772
+        Sns_Unsubscribe_Error(773,"Sns_Unsubscribe_Error"),                             //773
+        Sns_Publish_Notification_Error(774,"Sns_Publish_Notification_Error"),           //774
+        Topic_subscription_Already_Error(780,"Topic_subscription_Already_Error"),   //780
+        Topic_subscription_List_Null_Error(781,"Topic_subscription_List_Null_Error"),   //781
+        Request_Format_Error(500,"Request_Format_Error");                               //500
 
         private final Integer code;
         private final String error_msg;

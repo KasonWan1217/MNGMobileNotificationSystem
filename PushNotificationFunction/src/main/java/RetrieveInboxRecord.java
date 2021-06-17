@@ -30,7 +30,7 @@ public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyReques
         headers.put("Content-Type", "application/json");
         headers.put("X-Custom-Header", "application/json");
         APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent().withHeaders(headers);
-        ResponseMessage output;
+        ResponseMessage output = null;
         if (input != null) {
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<>();
@@ -48,9 +48,7 @@ public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyReques
                 return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Query_Error.getCode(), fs_all.get(fs_all.size() - 1).convertToMessage()).convertToJsonString());
             }
 
-            ResponseMessage.Message rs_msg = new ResponseMessage.Message();
-            rs_msg.setInbox_msg((InboxMessageRecord[]) fs_all.get(fs_all.size()-1).getResponse().get("inbox_msg"));
-            output = new ResponseMessage(200, rs_msg);
+            output = new ResponseMessage(200, (List<Object>) fs_all.get(fs_all.size()-1).getResponse().get("inbox_msg"));
         }  else {
             output = new ResponseMessage(Request_Format_Error.getCode(), Request_Format_Error.getError_msg());
             logger.log("Request Error - Message: " + output.getMessage());

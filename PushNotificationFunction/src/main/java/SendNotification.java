@@ -64,7 +64,7 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
                     fs_all.add(DynamoDBService.deleteData(recordTable));
                     List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
                     logger.log("\nError subscribe : " + gson.toJson(filteredList));
-                    List<ResponseMessage.Message> message = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                    List<Object> message = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
                     return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Query_Error.getCode(), message).convertToJsonString());
                 }
 

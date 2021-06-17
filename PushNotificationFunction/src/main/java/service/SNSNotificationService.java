@@ -65,13 +65,15 @@ public class SNSNotificationService {
 
     public static FunctionStatus subscribe(String endpointArn, String topic) {
         try {
-            Consumer<SubscribeRequest.Builder> consumer = builder -> {
-                builder.endpoint(endpointArn);
-                builder.topicArn(topic);
-                builder.protocol("application");
-            };
-            SubscribeResponse response = snsClient.subscribe(consumer);
-            logger.log("\nsubscribe - SubscribeResponse: " + response.toString() + "\n");
+            SubscribeRequest request = SubscribeRequest.builder()
+                    .protocol("application")
+                    .endpoint(endpointArn)
+                    .returnSubscriptionArn(true)
+                    .topicArn(topic)
+                    .build();
+            SubscribeResponse response = snsClient.subscribe(request);
+            logger.log("\nSubscribeResponse : " + response.sdkHttpResponse().statusCode() + "\n");
+            logger.log("\nSubscribeResponse : " + response.toString() + "\n");
             HashMap<String, Object> result = new HashMap<>();
             result.put("subscriptionArn", response.subscriptionArn());
             return new FunctionStatus(true, result);
@@ -84,9 +86,12 @@ public class SNSNotificationService {
     public static FunctionStatus unsubscribe(String subscriptionArn) {
         logger.log("\nunSubscribe subscriptionArn: " + subscriptionArn + "\n");
         try {
-            Consumer<software.amazon.awssdk.services.sns.model.UnsubscribeRequest.Builder> consumer = builder -> builder.subscriptionArn(subscriptionArn);
-            UnsubscribeResponse response = snsClient.unsubscribe(consumer);
-            logger.log("\nUnsubscribeResponse response: " + response.toString() + "\n");
+            UnsubscribeRequest request = UnsubscribeRequest.builder()
+                    .subscriptionArn(subscriptionArn)
+                    .build();
+            UnsubscribeResponse response = snsClient.unsubscribe(request);
+            logger.log("\nUnsubscribeResponse : " + response.sdkHttpResponse().statusCode() + "\n");
+            logger.log("\nUnsubscribeResponse : " + response.toString() + "\n");
             return new FunctionStatus(true, null);
         } catch (SnsException e) {
             logger.log("\nUnregister Error: " + e.getMessage() + "\n");
@@ -124,7 +129,10 @@ public class SNSNotificationService {
     private static FunctionStatus pubTopic(String message, String topicArn) {
         logger.log("SNSNotificationService.pubTopic - Start "+ topicArn);
         try {
-            PublishRequest request = PublishRequest.builder().topicArn(topicArn).messageStructure("json").message(message).build();
+            PublishRequest request = PublishRequest.builder()
+                    .topicArn(topicArn)
+                    .messageStructure("json")
+                    .message(message).build();
             logger.log("SNSNotificationService.pubTopic - Sending" );
             PublishResponse result = snsClient.publish(request);
             logger.log(result.messageId() + " Message sent. Status was " + result.sdkHttpResponse().statusCode());
@@ -146,7 +154,10 @@ public class SNSNotificationService {
         logger.log("SNSNotificationService.pubTarget -  Start :" + targetArn);
         try {
             new GsonBuilder().setPrettyPrinting().serializeNulls();
-            PublishRequest request = PublishRequest.builder().targetArn(targetArn).messageStructure("json").message(message).build();
+            PublishRequest request = PublishRequest.builder()
+                    .targetArn(targetArn)
+                    .messageStructure("json")
+                    .message(message).build();
             logger.log("SNSNotificationService.pubTarget - Sending");
             PublishResponse result = snsClient.publish(request);
             logger.log(result.messageId() + " Message sent. Status was " + result.sdkHttpResponse().statusCode());

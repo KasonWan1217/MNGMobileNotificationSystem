@@ -128,7 +128,7 @@ public class DynamoDBService {
         logger.log("InboxMessageRecord List 2 Size: " + inbox_msg.size());
 
         HashMap<String, Object> rs = new HashMap<>();
-        rs.put("inbox_msg", inbox_msg.toArray(new InboxMessageRecord[0]));
+        rs.put("inbox_msg", inbox_msg);
         return new FunctionStatus(true, rs);
     }
 

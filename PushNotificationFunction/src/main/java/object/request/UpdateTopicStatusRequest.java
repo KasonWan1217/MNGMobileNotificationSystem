@@ -2,10 +2,9 @@ package object.request;
 
 import com.google.gson.Gson;
 
-public class SubscribeTopicRequest {
+public class UpdateTopicStatusRequest {
     private String app_reg_id;
     private String channel_name;
-    private String action;
 
     public String getApp_reg_id() {
         return app_reg_id;
@@ -21,14 +20,6 @@ public class SubscribeTopicRequest {
 
     public void setChannel_name(String channel_name) {
         this.channel_name = channel_name;
-    }
-
-    public String getAction() {
-        return action;
-    }
-
-    public void setAction(String action) {
-        this.action = action;
     }
 
     public String convertToJsonString() {

@@ -94,7 +94,7 @@ public class RegisterSnsService implements RequestHandler<APIGatewayProxyRequest
                             fs_all.add(SNSNotificationService.unregister(table_Subscriptions.getArn()));
                             List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
                             logger.log("\nError subscribe : " + gson.toJson(filteredList));
-                            List<ResponseMessage.Message> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                            List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
                             return response.withStatusCode(200).withBody(new ResponseMessage(Sns_Subscription_Error.getCode(), list_errorMessage).convertToJsonString());
                         } else {
                             String subscriptionArn = (String) fs_all.get(fs_all.size() - 1).getResponse().get("subscriptionArn");
@@ -121,7 +121,7 @@ public class RegisterSnsService implements RequestHandler<APIGatewayProxyRequest
                     List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
                     logger.log("\nError : " + gson.toJson(filteredList));
                     logger.log("\nError : " + filteredList.toString());
-                    List<ResponseMessage.Message> message = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                    List<Object> message = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
                     return response.withStatusCode(200).withBody(new ResponseMessage(Sns_Registration_Error.getCode(), message).convertToJsonString());
                 }
 

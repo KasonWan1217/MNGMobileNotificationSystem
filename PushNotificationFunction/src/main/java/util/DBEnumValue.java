@@ -17,4 +17,8 @@ public class DBEnumValue {
         Fail,
         Reset
     }
+    public enum Action {
+        Subscribe,
+        Unsubscribe
+    }
 }

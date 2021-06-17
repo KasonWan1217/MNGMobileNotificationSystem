@@ -8,24 +8,24 @@ import java.util.List;
 public class ResponseMessage {
 
     private Integer code;
-    private List<Message> message;
+    private List<Object> message;
 
     public ResponseMessage(Integer code, String fail_msg) {
         this.code = code;
         Message message = new Message(code, fail_msg, fail_msg);
         if (this.message == null)
-            this.message = new ArrayList<Message>();
+            this.message = new ArrayList<>();
         this.message.add(message);
     }
 
     public ResponseMessage(Integer code, Message message) {
         this.code = code;
         if (this.message == null)
-            this.message = new ArrayList<Message>();
+            this.message = new ArrayList<>();
         this.message.add(message);
     }
 
-    public ResponseMessage(Integer code, List<Message> message) {
+    public ResponseMessage(Integer code, List<Object> message) {
         this.code = code;
         this.message = message;
     }
@@ -37,10 +37,11 @@ public class ResponseMessage {
         this.code = code;
     }
 
-    public List<Message> getMessage() {
+    public List<Object> getMessage() {
         return message;
     }
-    public void setMessage(List<Message> message) {
+
+    public void setMessage(List<Object> message) {
         this.message = message;
     }
 
@@ -52,7 +53,7 @@ public class ResponseMessage {
         private String msg_qty;
         private String error_msg;
         private String error_msg_detail;
-        private InboxMessageRecord[] inbox_msg;
+        private List<InboxMessageRecord> inbox_msg;
 
         public Message() {}
 
@@ -67,7 +68,7 @@ public class ResponseMessage {
             this.error_msg_detail = error_msg_detail;
         }
 
-        public Message(InboxMessageRecord[] inbox_msg) {
+        public Message(List<InboxMessageRecord> inbox_msg) {
             this.inbox_msg = inbox_msg;
         }
 
@@ -127,11 +128,11 @@ public class ResponseMessage {
             this.error_msg_detail = error_msg_detail;
         }
 
-        public InboxMessageRecord[] getInbox_msg() {
+        public List<InboxMessageRecord> getInbox_msg() {
             return inbox_msg;
         }
 
-        public void setInbox_msg(InboxMessageRecord[] inbox_msg) {
+        public void setInbox_msg(List<InboxMessageRecord> inbox_msg) {
             this.inbox_msg = inbox_msg;
         }
     }
