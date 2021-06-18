@@ -92,16 +92,6 @@ public class UnsubscribeTopic implements RequestHandler<APIGatewayProxyRequestEv
             //Update DB
             fs_all.add(DynamoDBService.updateData(snsAccount));
             if (! fs_all.get(fs_all.size() - 1).isStatus()) {
-                for (Subscription s : platform_list) {
-                    fs_all.add(SNSNotificationService.subscribe(s.getArn(), CommonUtil.getSnsTopicArn(request.getChannel_name())));
-                    if (fs_all.get(fs_all.size() - 1).isStatus()) {
-                        String subscriptionArn = fs_all.get(fs_all.size() - 1).getResponse().get("subscriptionArn").toString();
-                        list_new_record.add(new Subscription(request.getChannel_name(), subscriptionArn, DBEnumValue.ArnType.Topic.toString(), s.getChannel_name(), CommonUtil.getCurrentTime()));
-                    }
-                }
-                snsAccount.getSubscriptions().addAll(list_new_record);
-                fs_all.add(DynamoDBService.updateData(snsAccount));
-
                 List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
                 List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
                 logger.log("\nError : " + gson.toJson(list_errorMessage));

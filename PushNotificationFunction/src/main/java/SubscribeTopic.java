@@ -86,9 +86,6 @@ public class SubscribeTopic implements RequestHandler<APIGatewayProxyRequestEven
             snsAccount.getSubscriptions().addAll(list_new_subscribed_record);
             fs_all.add(DynamoDBService.updateData(snsAccount));
             if (!fs_all.get(fs_all.size() - 1).isStatus()) {
-                //Subscription fails, Start to unsubscribe the new subscriptions
-                for (Subscription s : list_new_subscribed_record)
-                    fs_all.add(SNSNotificationService.unsubscribe(s.getArn()));
                 //Setup Error Response
                 List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
                 List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
