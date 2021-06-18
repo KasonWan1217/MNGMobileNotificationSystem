@@ -118,7 +118,7 @@ public class PushMessage {
         private String body;
         private String sound;
         private int badge;
-        private String picUrl;
+        private String pic_url;
 
         public PushDetails(InboxRecord obj) {
             this.msg_id = obj.getMsg_id();
@@ -128,7 +128,7 @@ public class PushMessage {
             this.body = obj.getMessage().getBody();
             this.sound = obj.getSound();
             this.badge = obj.getBadge();
-            this.picUrl = obj.getPic_url();
+            this.pic_url = obj.getPic_url();
         }
 
         public String getMsg_id() {
@@ -187,12 +187,12 @@ public class PushMessage {
             this.badge = badge;
         }
 
-        public String getPicUrl() {
-            return picUrl;
+        public String getPic_url() {
+            return pic_url;
         }
 
-        public void setPicUrl(String picUrl) {
-            this.picUrl = picUrl;
+        public void setPic_url(String pic_url) {
+            this.pic_url = pic_url;
         }
     }
 }
