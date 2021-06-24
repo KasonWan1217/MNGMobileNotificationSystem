@@ -8,13 +8,14 @@ import object.FunctionStatus;
 import object.ResponseMessage;
 import object.db.SnsAccount;
 import object.db.SnsAccount.Subscription;
-import object.request.UpdateTopicStatusRequest;
+import object.request.UpdateSubscriptionListRequest;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
 import service.SNSNotificationService;
 import util.CommonUtil;
 import util.DBEnumValue;
 import util.ErrorMessageUtil;
+import util.RequestValidation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,7 +37,16 @@ public class UnsubscribeTopic implements RequestHandler<APIGatewayProxyRequestEv
         if (input != null) {
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<>();
-            UpdateTopicStatusRequest request = gson.fromJson(input.getBody(), UpdateTopicStatusRequest.class);
+            UpdateSubscriptionListRequest request = gson.fromJson(input.getBody(), UpdateSubscriptionListRequest.class);
+            //Request Validation
+            fs_all.addAll(RequestValidation.updateSubscriptionListRequest_validation(request));
+            if (!fs_all.get(fs_all.size() - 1).isStatus())  {
+                List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
+                logger.log("\nError subscribe : " + gson.toJson(filteredList));
+                List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                return response.withStatusCode(200).withBody(new ResponseMessage(Json_Request_Error.getCode(), list_errorMessage).convertToJsonString());
+            }
+
             //Get Sns Account Info from DB
             fs_all.add(DynamoDBService.getSnsAccount_AppRegId(request.getApp_reg_id()));
             SnsAccount snsAccount = (SnsAccount) fs_all.get(fs_all.size() - 1).getResponse().get("snsAccount");

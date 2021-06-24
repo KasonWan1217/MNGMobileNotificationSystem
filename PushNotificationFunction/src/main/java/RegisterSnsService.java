@@ -17,6 +17,7 @@ import service.SNSNotificationService;
 import util.CommonUtil;
 import util.DBEnumValue.*;
 import util.ErrorMessageUtil;
+import util.RequestValidation;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +39,14 @@ public class RegisterSnsService implements RequestHandler<APIGatewayProxyRequest
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<>();
             SnsAccount snsAccount = gson.fromJson(input.getBody(), SnsAccount.class);
+            fs_all.addAll(RequestValidation.registerSnsService_validation(snsAccount));
+            if (!fs_all.get(fs_all.size() - 1).isStatus())  {
+                List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
+                logger.log("\nError subscribe : " + gson.toJson(filteredList));
+                List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                return response.withStatusCode(200).withBody(new ResponseMessage(Json_Request_Error.getCode(), list_errorMessage).convertToJsonString());
+            }
+
             if (snsAccount.getApp_reg_id() == null || snsAccount.getApp_reg_id().isEmpty()) {
                 //Try to get Old device token Info
                 fs_all.add(DynamoDBService.getSnsAccount_DeviceToken(snsAccount.getDevice_token()));

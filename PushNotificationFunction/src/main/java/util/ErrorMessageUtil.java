@@ -6,7 +6,10 @@ import object.ResponseMessage;
 public class ErrorMessageUtil {
     public enum ErrorMessage {
         AmazonClient_Error(700, "AmazonClient_Error"),                                  //700
-        AppRegId_Account_Error(705, "AppRegId_Account_Error"),                          //705
+        Json_Request_Error(704, "Json_Request_Error"),                                  //704
+        Parameter_Missing_Error(705, "Parameter_Missing_Error"),                        //705
+        Invalid_Length_Parameter(706, "Invalid_Length_Parameter"),                      //706
+        Invalid_Value_Parameter(707, "Invalid_Value_Parameter"),                        //707
         PlatformName_Null_Error(710, "PlatformName_Null_Error"),                        //710
         AppRegId_Invalid_Error(711, "AppRegId_Invalid_Error"),                          //711
         AppRegId_Null_Error(712,"AppRegId_Null_Error"),                                 //712
@@ -40,7 +43,9 @@ public class ErrorMessageUtil {
             return error_msg;
         }
     }
-
+    public static FunctionStatus getFunctionStatus(ErrorMessage fail_message, String fieldName) {
+        return new FunctionStatus(false ,fail_message.getCode(), fail_message.getError_msg(), fieldName + ": " + fail_message.getError_msg());
+    }
     public static FunctionStatus getFunctionStatus(ErrorMessage fail_message) {
         return new FunctionStatus(false ,fail_message.getCode(), fail_message.getError_msg());
     }

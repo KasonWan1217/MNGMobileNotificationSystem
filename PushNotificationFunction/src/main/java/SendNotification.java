@@ -17,10 +17,9 @@ import service.SNSNotificationService;
 import object.db.InboxRecord;
 import object.ResponseMessage;
 import org.apache.log4j.BasicConfigurator;
-import util.CommonUtil;
-import util.DBEnumValue;
-import util.ErrorMessageUtil;
+import util.*;
 
+import static util.CommonValidationUtil.intContainsItemFromList;
 import static util.ErrorMessageUtil.ErrorMessage.*;
 
 /**
@@ -41,7 +40,16 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
         if (input != null) {
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<>();
-            InboxRecord recordTable = new InboxRecord(input.getBody());
+
+            InboxRecord recordTable = gson.fromJson(input.getBody(), InboxRecord.class);
+            fs_all.addAll(RequestValidation.sendNotification_validation(recordTable));
+            if (!fs_all.get(fs_all.size() - 1).isStatus())  {
+                List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
+                logger.log("\nError subscribe : " + gson.toJson(filteredList));
+                List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                return response.withStatusCode(200).withBody(new ResponseMessage(Json_Request_Error.getCode(), list_errorMessage).convertToJsonString());
+            }
+
             recordTable.setCreate_datetime(request_time);
             if(!recordTable.isDirect_msg()) {
                 Map<String, ExpectedAttributeValue> expected = new HashMap<>();
@@ -52,9 +60,11 @@ public class SendNotification implements RequestHandler<APIGatewayProxyRequestEv
                     return response.withStatusCode(200).withBody(new ResponseMessage(DynamoDB_Insert_Error.getCode(), fs_all.get(fs_all.size() - 1).convertToMessage()).convertToJsonString());
                 }
             }
+            recordTable.setNotification_id(CommonUtil.genNotificationID(recordTable.getMsg_id(), request_time));
+            logger.log("\nsetNotification_id : " + recordTable.getNotification_id());
+
             ArrayList<String> msg_id_arrayList = new ArrayList<>();
             int msg_qty = 0;
-
 
             if (DBEnumValue.TargetType.Personal.toString().equals(recordTable.getTarget_type())) {
                 //Send Personal Notification

@@ -2,7 +2,7 @@ package object.request;
 
 import com.google.gson.Gson;
 
-public class UpdateTopicStatusRequest {
+public class UpdateSubscriptionListRequest {
     private String app_reg_id;
     private String channel_name;
 

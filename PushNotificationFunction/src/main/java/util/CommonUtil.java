@@ -30,7 +30,6 @@ public class CommonUtil {
             e.printStackTrace();
         }
         return null;
-
     }
 
     private static String genNewAppRegID(String app_id, Date datetime) {
@@ -50,10 +49,24 @@ public class CommonUtil {
         return checkDigit.toUpperCase();
     }
 
+    public static int genNotificationID(String msg_id, String cTime) {
+        try {
+            Date datetime = new SimpleDateFormat("yyyyMMddHHmmss").parse(cTime);
+            String rs = new SimpleDateFormat("DDD").format(datetime) + getLastWord(msg_id, 13);
+            return Integer.parseInt(rs);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public static String getLastWord(String str, int length){
+        return str.substring(length, str.length());
+    }
+
     public static String getCurrentTime() {
         DateFormat datetime = new SimpleDateFormat("yyyyMMddHHmmss");
         datetime.setTimeZone(TimeZone.getTimeZone("Asia/Hong_Kong"));
         return datetime.format(new Date());
     }
-
 }

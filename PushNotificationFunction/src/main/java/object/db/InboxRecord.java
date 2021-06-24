@@ -22,6 +22,8 @@ public class InboxRecord {
     private String create_datetime;
     private Remark supplementary_field;
 
+    //dynamoDB ignore.
+    private int notification_id;
 
     public InboxRecord(String json) {
         InboxRecord request = new Gson().fromJson(json, InboxRecord.class);
@@ -189,6 +191,14 @@ public class InboxRecord {
         public String convertToJsonString() {
             return new Gson().toJson(this);
         }
+    }
+
+    @DynamoDBIgnore
+    public int getNotification_id() {
+        return notification_id;
+    }
+    public void setNotification_id(int notification_id) {
+        this.notification_id = notification_id;
     }
 
     public String convertToJsonString() {

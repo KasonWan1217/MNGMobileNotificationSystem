@@ -12,14 +12,12 @@ import object.db.SnsAccount.Subscription;
 import object.request.RetrieveInboxRecordRequest;
 import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
+import util.RequestValidation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import static util.ErrorMessageUtil.ErrorMessage.DynamoDB_Query_Error;
-import static util.ErrorMessageUtil.ErrorMessage.Request_Format_Error;
+import static util.ErrorMessageUtil.ErrorMessage.*;
 
 public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
@@ -35,6 +33,15 @@ public class RetrieveInboxRecord implements RequestHandler<APIGatewayProxyReques
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<>();
             RetrieveInboxRecordRequest request = gson.fromJson(input.getBody(), RetrieveInboxRecordRequest.class);
+            //Request Validation
+            fs_all.addAll(RequestValidation.retrieveInboxRecord_validation(request));
+            if (!fs_all.get(fs_all.size() - 1).isStatus())  {
+                List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
+                logger.log("\nError subscribe : " + gson.toJson(filteredList));
+                List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                return response.withStatusCode(200).withBody(new ResponseMessage(Json_Request_Error.getCode(), list_errorMessage).convertToJsonString());
+            }
+
             fs_all.add(DynamoDBService.getSubscriptionsList(request.getApp_reg_id()));
             if(! fs_all.get(fs_all.size()-1).isStatus()) {
                 logger.log("\nError : " + gson.toJson(fs_all));

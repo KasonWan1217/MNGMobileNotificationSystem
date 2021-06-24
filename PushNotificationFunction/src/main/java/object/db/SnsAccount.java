@@ -2,6 +2,10 @@ package object.db;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
 import com.google.gson.Gson;
+import object.FunctionStatus;
+import util.CommonValidationUtil;
+import util.DBEnumValue;
+import util.ErrorMessageUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +20,7 @@ public class SnsAccount {
     private String active_status;
     private List<Subscription> subscriptions;
 
+    //dynamoDB ignore.
     private String app_id;
 
     @DynamoDBHashKey(attributeName="app_reg_id")
@@ -153,6 +158,20 @@ public class SnsAccount {
             return new Gson().toJson(this);
         }
     }
+
+    public FunctionStatus request_validation() {
+        //Check Mandatory
+        if (CommonValidationUtil.isEmpty(this.device_token) || CommonValidationUtil.isEmpty(this.app_name) || CommonValidationUtil.isEmpty(this.mobile_type) || CommonValidationUtil.isEmpty(this.app_id) )
+            return ErrorMessageUtil.getFunctionStatus(ErrorMessageUtil.ErrorMessage.Parameter_Missing_Error);
+        else if (CommonValidationUtil.isValidLength(this.device_token, 1, 250) || CommonValidationUtil.isValidLength(this.app_name, 1, 30) || CommonValidationUtil.isValidLength(this.app_id, 2)
+                || CommonValidationUtil.isValidLength_nonMandatory(this.app_reg_id, 1, 250))
+            return ErrorMessageUtil.getFunctionStatus(ErrorMessageUtil.ErrorMessage.Invalid_Length_Parameter);
+        else if (!new DBEnumValue().equalValue(this.mobile_type))
+            return ErrorMessageUtil.getFunctionStatus(ErrorMessageUtil.ErrorMessage.Invalid_Length_Parameter);
+        else
+            return new FunctionStatus(true, null);
+    }
+
 
     public String convertToJsonString() {
         return new Gson().toJson(this);

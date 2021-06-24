@@ -13,11 +13,10 @@ import org.apache.log4j.BasicConfigurator;
 import service.DynamoDBService;
 import util.CommonUtil;
 import util.ErrorMessageUtil;
+import util.RequestValidation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static util.ErrorMessageUtil.ErrorMessage.*;
 
@@ -35,6 +34,15 @@ public class StoreAckRecord implements RequestHandler<APIGatewayProxyRequestEven
             Gson gson = new Gson();
             ArrayList<FunctionStatus> fs_all = new ArrayList<FunctionStatus>();
             AckRecord recordTable = gson.fromJson(input.getBody(), AckRecord.class);
+            //Request Validation
+            fs_all.addAll(RequestValidation.storeAckRecord_validation(recordTable));
+            if (!fs_all.get(fs_all.size() - 1).isStatus())  {
+                List<FunctionStatus> filteredList = fs_all.stream().filter(entry -> !entry.isStatus()).collect(Collectors.toList());
+                logger.log("\nError subscribe : " + gson.toJson(filteredList));
+                List<Object> list_errorMessage = Arrays.asList(gson.fromJson(gson.toJson(filteredList), ResponseMessage.Message[].class));
+                return response.withStatusCode(200).withBody(new ResponseMessage(Json_Request_Error.getCode(), list_errorMessage).convertToJsonString());
+            }
+
             if (! CommonUtil.validate_AppRegId(recordTable.getApp_reg_id())) {
                 ResponseMessage responseMsg = ErrorMessageUtil.getErrorResponseMessage(AppRegId_Invalid_Error);
                 return response.withStatusCode(200).withBody(responseMsg.convertToJsonString());

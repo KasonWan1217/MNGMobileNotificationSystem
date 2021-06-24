@@ -51,17 +51,17 @@ public class PushMessage {
     }
 
     public class Alert {
-        private PushDetails alert;
+        private NotificationDetails alert;
 
-        public Alert(PushDetails alert) {
+        public Alert(NotificationDetails alert) {
             this.alert = alert;
         }
 
-        public PushDetails getAlert() {
+        public NotificationDetails getAlert() {
             return alert;
         }
 
-        public void setAlert(PushDetails alert) {
+        public void setAlert(NotificationDetails alert) {
             this.alert = alert;
         }
     }
@@ -83,23 +83,23 @@ public class PushMessage {
     }
 
     public class GCM {
-        private PushDetails data;
+        private NotificationDetails data;
 
-        public PushDetails getData() {
+        public NotificationDetails getData() {
             return data;
         }
 
-        public void setData(PushDetails data) {
+        public void setData(NotificationDetails data) {
             this.data = data;
         }
 
-        public GCM(PushDetails data) {
+        public GCM(NotificationDetails data) {
             this.data = data;
         }
     }
 
     public PushMessage(InboxRecord obj){
-        PushDetails details = new PushDetails(obj);
+        NotificationDetails details = new NotificationDetails(obj);
         Gson gson = new GsonBuilder().serializeNulls().create();
         String txt_APNS = gson.toJson(new APNS(new Alert(details)));
         String txt_GCM = gson.toJson(new GCM(details));
@@ -110,8 +110,9 @@ public class PushMessage {
         this.gcm = txt_GCM;
     }
 
-    public class PushDetails {
+    public class NotificationDetails {
         private String msg_id;
+        private int notification_id;
         private String action_category;
         private String title;
         private String sub_title;
@@ -120,8 +121,9 @@ public class PushMessage {
         private int badge;
         private String pic_url;
 
-        public PushDetails(InboxRecord obj) {
+        public NotificationDetails(InboxRecord obj) {
             this.msg_id = obj.getMsg_id();
+            this.notification_id = obj.getNotification_id();
             this.action_category = obj.getAction_category();
             this.title = obj.getMessage().getTitle();
             this.sub_title = obj.getMessage().getSub_title();
@@ -137,6 +139,14 @@ public class PushMessage {
 
         public void setMsg_id(String msg_id) {
             this.msg_id = msg_id;
+        }
+
+        public int getNotification_id() {
+            return notification_id;
+        }
+
+        public void setNotification_id(int notification_id) {
+            this.notification_id = notification_id;
         }
 
         public String getAction_category() {
