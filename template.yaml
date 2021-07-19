@@ -13,8 +13,8 @@ Globals:
     MemorySize: 512
     Environment:
       Variables:
-        SnsTopicDomain: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:"
-        SnsPlatformDomain: !Sub "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:app/"
+        SnsTopicDomain: !Sub "arn:aws:sns:ap-southeast-1:${AWS::AccountId}:"
+        SnsPlatformDomain: !Sub "arn:aws:sns:ap-southeast-1:${AWS::AccountId}:app/"
 
 Parameters:
   Stage:
@@ -146,7 +146,7 @@ Resources:
               Fn::Join:
                 - ""
                 - - "arn:aws:sns:"
-                  - !Ref "AWS::Region"
+                  - "ap-southeast-1"
                   - ":"
                   - !Ref "AWS::AccountId"
                   - ":*"
@@ -156,7 +156,7 @@ Resources:
   RegisterDeviceTokenFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: RegisterSnsService::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
@@ -173,7 +173,7 @@ Resources:
   SendNotificationFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: SendNotification::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
@@ -190,7 +190,7 @@ Resources:
   StoreAckRecordFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: StoreAckRecord::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
@@ -207,7 +207,7 @@ Resources:
   RetrieveInboxRecordFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: RetrieveInboxRecord::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
@@ -224,7 +224,7 @@ Resources:
   SubscribeTopicFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: SubscribeTopic::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:
@@ -241,7 +241,7 @@ Resources:
   UnsubscribeTopicFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: PushNotificationFunction/
+      CodeUri: MNGMobileNotificationSystem/
       Handler: UnsubscribeTopic::handleRequest
       Role: !GetAtt LambdaExecutionRole.Arn
       Events:

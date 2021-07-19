@@ -26,7 +26,7 @@ public class SNSNotificationService {
     private final static SnsClient snsClient;
     static {
         snsClient = SnsClient.builder()
-                .region(Region.AP_NORTHEAST_1)
+                .region(Region.AP_SOUTHEAST_1)
                 .credentialsProvider(EnvironmentVariableCredentialsProvider.create())
                 .httpClient(ApacheHttpClient.builder().build())
                 .build();
