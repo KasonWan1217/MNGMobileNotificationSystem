@@ -3,7 +3,7 @@ version = 0.1
 [default.deploy]
 [default.deploy.parameters]
 stack_name = "sns-notification"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1c09eaql2e70k"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1uhgsxmlqaphe"
 s3_prefix = "sns-notification"
 region = "ap-northeast-1"
 confirm_changeset = true
@@ -26,6 +26,17 @@ parameter_overrides = "Stage=\"Dev\""
 [y.deploy.parameters]
 stack_name = "sns-notification"
 s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1c09eaql2e70k"
+s3_prefix = "sns-notification"
+region = "ap-northeast-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Stage=\"Dev\""
+
+[DEV]
+[DEV.deploy]
+[DEV.deploy.parameters]
+stack_name = "sns-notification"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1uhgsxmlqaphe"
 s3_prefix = "sns-notification"
 region = "ap-northeast-1"
 confirm_changeset = true
