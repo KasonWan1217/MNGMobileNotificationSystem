@@ -1,22 +1,25 @@
 version: 0.2
-
+env:
+  variables:
+    TEMPLATE_FILE: "template.yaml"
+    OUTPUT_TEMPLATE_FILE: "packaged-template.yaml"
+    S3_BUCKET: "mng-mobile-notification-system-bucket-001"
+    STACK : "mng-mobile-notification-system-stack"
 phases:
   install:
     runtime-versions:
       java: corretto11
   pre_build:
     commands:
-      - echo Nothing to do in the pre_build phase...
+      - pip install --upgrade awscli
   build:
     commands:
       - echo Build started on `date`
-      - aws cloudformation package --template-file template.yaml --s3-bucket mng-mobile-notification-bucket --output-template-file template.yaml
-      - mvn test
+      - sam build
+      - sam deploy --s3-bucket $S3_BUCKET --stack-name $STACK --capabilities CAPABILITY_IAM --no-confirm-changeset
   post_build:
     commands:
       - echo Build completed on `date`
-      - mvn package
 artifacts:
-  type: zip
   files:
-    - template.yaml
+    - $OUTPUT_TEMPLATE_FILE
