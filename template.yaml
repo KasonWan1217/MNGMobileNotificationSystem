@@ -9,7 +9,7 @@ Description: >
 Globals:
   Function:
     Runtime: java11
-    Timeout: 180
+    Timeout: 300
     MemorySize: 512
     Environment:
       Variables:
@@ -24,7 +24,12 @@ Parameters:
 
 
 Resources:
-  ApiGateway:
+  ExternalApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref "Stage"
+
+  InternalApiGateway:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref "Stage"
@@ -166,7 +171,7 @@ Resources:
             Path: /registerDeviceToken
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: ExternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -183,7 +188,7 @@ Resources:
             Path: /sendNotification
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: InternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -200,7 +205,7 @@ Resources:
             Path: /storeAckRecord
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: ExternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -217,7 +222,7 @@ Resources:
             Path: /retrieveInboxRecord
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: ExternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -234,7 +239,7 @@ Resources:
             Path: /subscribeTopic
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: ExternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -251,7 +256,7 @@ Resources:
             Path: /unsubscribeTopic
             Method: POST
             RestApiId:
-              Ref: ApiGateway
+              Ref: ExternalApiGateway
   #            Auth:
   #              ApiKeyRequired: true
 
@@ -388,42 +393,42 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   RegisterDeviceTokenAPI:
     Description: "API Gateway endpoint URL for Prod stage for Send Notification Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/registerDeviceToken/"
+    Value: !Sub "https://${ExternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/registerDeviceToken/"
   RegisterDeviceTokenFunction:
     Description: "Register Device Token Lambda Function ARN"
     Value: !GetAtt RegisterDeviceTokenFunction.Arn
 
   SendNotificationAPI:
     Description: "API Gateway endpoint URL for Prod stage for Send Notification Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/sendNotification/"
+    Value: !Sub "https://${InternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/sendNotification/"
   SendNotificationFunction:
     Description: "Send Notification Lambda Function ARN"
     Value: !GetAtt SendNotificationFunction.Arn
 
   StoreAckRecordAPI:
     Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/storeAckRecord/"
+    Value: !Sub "https://${ExternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/storeAckRecord/"
   StoreAckRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt StoreAckRecordFunction.Arn
 
   RetrieveInboxRecordAPI:
     Description: "API Gateway endpoint URL for Prod stage for Store Ack Record Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/retrieveInboxRecord/"
+    Value: !Sub "https://${ExternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/retrieveInboxRecord/"
   RetrieveInboxRecordFunction:
     Description: "Store Ack Record Lambda Function ARN"
     Value: !GetAtt RetrieveInboxRecordFunction.Arn
 
   SubscribeTopicAPI:
     Description: "API Gateway endpoint URL for Prod stage for Subscribe Topic Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/subscribeTopic/"
+    Value: !Sub "https://${ExternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/subscribeTopic/"
   SubscribeTopicFunction:
     Description: "Subscribe Topic Lambda Function ARN"
     Value: !GetAtt SubscribeTopicFunction.Arn
 
   UnsubscribeTopicAPI:
     Description: "API Gateway endpoint URL for Prod stage for Subscribe Topic Function"
-    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/unsubscribeTopic/"
+    Value: !Sub "https://${ExternalApiGateway}.execute-api.${AWS::Region}.amazonaws.com/${Stage}/unsubscribeTopic/"
   UnsubscribeTopicFunction:
     Description: "Unsubscribe Topic Lambda Function ARN"
     Value: !GetAtt UnsubscribeTopicFunction.Arn
