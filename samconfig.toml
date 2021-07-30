@@ -2,9 +2,9 @@ version = 0.1
 [default]
 [default.deploy]
 [default.deploy.parameters]
-stack_name = "sns-notification"
-s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-zgxth0pndaxl"
-s3_prefix = "sns-notification"
+stack_name = "mng-mobile-notification-system"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-1vcthhmx411yl"
+s3_prefix = "mng-mobile-notification-system"
 region = "ap-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"

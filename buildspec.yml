@@ -4,7 +4,7 @@ env:
     TEMPLATE_FILE: "template.yaml"
     OUTPUT_TEMPLATE_FILE: "packaged-template.yaml"
     S3_BUCKET: "mng-mobile-notification-system-bucket-001"
-    STACK : "mng-mobile-notification-system-stack"
+    STACK : "mng-mobile-notification-system"
 phases:
   install:
     runtime-versions:

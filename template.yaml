@@ -84,7 +84,7 @@ Resources:
   LambdaGroupPolicies:
     Type: "AWS::IAM::Policy"
     Properties:
-      PolicyName: "SnsPublishPolicies"
+      PolicyName: "MNGMobileNotificationSystemPolicies"
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
