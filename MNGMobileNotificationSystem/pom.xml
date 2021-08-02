@@ -5,7 +5,7 @@
     <artifactId>MNGMobileNotificationSystem</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
-    <name>Push Notification Project created for SAM CLI.</name>
+    <name>MNG Mobile Notification System Project created for SAM CLI.</name>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>

@@ -1,9 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  push-notification
+  MNGMobileNotificationSystem
 
-  Sample SAM Template for push-notification
+  Sample SAM Template for MNGMobileNotificationSystem
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -33,42 +33,6 @@ Resources:
     Type: AWS::Serverless::Api
     Properties:
       StageName: !Ref "Stage"
-#  Api:
-#    Type: AWS::Serverless::Api
-#    Properties:
-#      StageName: !Ref "Stage"
-  #  ApiKey:
-  #    Type: "AWS::ApiGateway::ApiKey"
-  #    #    DependsOn: [ApiUsagePlan]
-  #    Properties:
-  #      Name: !Join [ "", [ { "Ref": "AWS::StackName" }, "-apikey" ] ]
-  #      Description: SNS API Key V1
-  #      Enabled: 'true'
-  #      StageKeys:
-  #        - RestApiId: !Ref AWSServerlessApi
-  #          StageName: DEV
-  #  ApiUsagePlan:
-  #    Type: "AWS::ApiGateway::UsagePlan"
-  #    DependsOn:
-  #      - ServerlessHttpApiProdStage
-  #    Properties:
-  #      ApiStages:
-  #        - ApiId: !Ref ServerlessHttpApi
-  #          Stage: Prod
-  #      Description: !Join [ " ", [ { "Ref": "AWS::StackName" }, "usage plan" ] ]
-  #      Quota:
-  #        Limit: 1000
-  #        Period: MONTH
-  #      UsagePlanName: !Join [ "", [ { "Ref": "AWS::StackName" }, "-usage-plan" ] ]
-
-  #  ApiUsagePlanKey:
-  #    Type: "AWS::ApiGateway::UsagePlanKey"
-  #    DependsOn:
-  #      - ServerlessHttpApi
-  #    Properties:
-  #      KeyId: !Ref ApiKey
-  #      KeyType: API_KEY
-  #      UsagePlanId: !Ref ApiUsagePlan
 
   LambdaExecutionRole:
     Type: "AWS::IAM::Role"
