@@ -15,8 +15,7 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - sam build
-      - sam deploy --s3-bucket $S3_BUCKET --stack-name $STACK --capabilities CAPABILITY_IAM --no-confirm-changeset
+      - sam build --use-container --build-image amazon/aws-sam-cli-build-image-java11
   post_build:
     commands:
       - echo Build completed on `date`
