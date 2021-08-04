@@ -2,7 +2,7 @@ version: 0.2
 env:
   variables:
     TEMPLATE_FILE: "template.yaml"
-    OUTPUT_TEMPLATE_FILE: "packaged-template.yaml"
+    OUTPUT_TEMPLATE_FILE: "template-export.yaml"
     S3_BUCKET: "mng-mobile-notification-system-bucket-001"
     STACK : "mng-mobile-notification-system"
 phases:
@@ -15,10 +15,11 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - sam build --use-container --build-image amazon/aws-sam-cli-build-image-java11
+      - aws cloudformation package --template template.yaml --s3-bucket $S3_BUCKET --out-template $OUTPUT_TEMPLATE_FILE
   post_build:
     commands:
       - echo Build completed on `date`
 artifacts:
+  type: zip
   files:
     - $OUTPUT_TEMPLATE_FILE
